@@ -1,6 +1,6 @@
-import { Element, h } from './element';
-import { bindClickoutside, unbindClickoutside } from './event';
 import { cssPrefix } from '../config';
+import { type Element, h } from './element';
+import { bindClickoutside, unbindClickoutside } from './event';
 
 export interface SuggestItem {
   key: string;
@@ -82,7 +82,7 @@ export default class Suggest {
   itemClick: ItemClickCallback;
   itemIndex: number;
 
-  constructor(items: SuggestItem[], itemClick: ItemClickCallback, width: string = '200px') {
+  constructor(items: SuggestItem[], itemClick: ItemClickCallback, width = '200px') {
     this.filterItems = [];
     this.items = items;
     this.el = h('div', `${cssPrefix}-suggest`).css('width', width).hide();
@@ -91,8 +91,7 @@ export default class Suggest {
   }
 
   setOffset(v: { top?: number; left?: number; bottom?: number }): void {
-    this.el.cssRemoveKeys('top', 'bottom')
-      .offset(v);
+    this.el.cssRemoveKeys('top', 'bottom').offset(v);
   }
 
   hide(): void {
@@ -110,7 +109,7 @@ export default class Suggest {
   search(word: string): void {
     let { items } = this;
     if (!/^\s*$/.test(word)) {
-      items = items.filter(it => (it.key || it).toString().startsWith(word.toUpperCase()));
+      items = items.filter((it) => (it.key || it).toString().startsWith(word.toUpperCase()));
     }
     const filteredElements = items.map((it) => {
       let title: string | (() => string) | undefined = it.title;
@@ -137,11 +136,15 @@ export default class Suggest {
       return;
     }
     const { el } = this;
-    el.html('').children(...filteredElements).show();
-    bindClickoutside(el.parent(), () => { this.hide(); });
+    el.html('')
+      .children(...filteredElements)
+      .show();
+    bindClickoutside(el.parent(), () => {
+      this.hide();
+    });
   }
 
   bindInputEvents(input: Element): void {
-    input.on('keydown', evt => inputKeydownHandler.call(this, evt as KeyboardEvent));
+    input.on('keydown', (evt) => inputKeydownHandler.call(this, evt as KeyboardEvent));
   }
 }

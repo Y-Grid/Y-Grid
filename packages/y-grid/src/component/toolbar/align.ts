@@ -1,6 +1,6 @@
-import DropdownItem from './dropdown-item';
+import type Dropdown from '../dropdown';
 import DropdownAlign from '../dropdown-align';
-import Dropdown from '../dropdown';
+import DropdownItem from './dropdown-item';
 
 export default class Align extends DropdownItem {
   constructor(value: string) {

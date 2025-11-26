@@ -1,6 +1,6 @@
-import DropdownItem from './dropdown-item';
+import type Dropdown from '../dropdown';
 import DropdownFontsize from '../dropdown-fontsize';
-import Dropdown from '../dropdown';
+import DropdownItem from './dropdown-item';
 
 interface FontSizeItem {
   pt: number;

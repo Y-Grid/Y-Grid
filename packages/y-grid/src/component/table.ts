@@ -1,12 +1,10 @@
 import { stringAt } from '../core/alphabet';
-import { getFontSizePxByPt } from '../core/font';
 import _cell from '../core/cell';
-import { formulam } from '../core/formula';
+import { getFontSizePxByPt } from '../core/font';
 import { formatm } from '../core/format';
+import { formulam } from '../core/formula';
 
-import {
-  Draw, DrawBox, thinLineWidth, npx,
-} from '../canvas/draw';
+import { Draw, DrawBox, npx, thinLineWidth } from '../canvas/draw';
 
 // global var
 const cellPaddingWidth = 5;
@@ -95,13 +93,19 @@ interface DataProxy {
   getCell: (ri: number, ci: number) => CellData | null;
   getCellStyleOrDefault: (ri: number, ci: number) => CellStyle;
   getCellTextOrDefault: (ri: number, ci: number) => string;
-  cellRect: (ri: number, ci: number) => { left: number; top: number; width: number; height: number };
+  cellRect: (
+    ri: number,
+    ci: number
+  ) => { left: number; top: number; width: number; height: number };
   rowEach: (start: number, end: number, cb: (i: number, y: number, height: number) => void) => void;
   colEach: (start: number, end: number, cb: (i: number, x: number, width: number) => void) => void;
   freezeTotalWidth: () => number;
   freezeTotalHeight: () => number;
   exceptRowTotalHeight: (start: number, end: number) => number;
-  eachMergesInView: (range: ViewRange, cb: (merge: { sri: number; sci: number; eri: number }) => void) => void;
+  eachMergesInView: (
+    range: ViewRange,
+    cb: (merge: { sri: number; sci: number; eri: number }) => void
+  ) => void;
 }
 
 function tableFixedHeaderStyle(): Record<string, unknown> {
@@ -115,14 +119,18 @@ function tableFixedHeaderStyle(): Record<string, unknown> {
   };
 }
 
-function getDrawBox(data: DataProxy, rindex: number, cindex: number, yoffset: number = 0): DrawBox {
-  const {
-    left, top, width, height,
-  } = data.cellRect(rindex, cindex);
+function getDrawBox(data: DataProxy, rindex: number, cindex: number, yoffset = 0): DrawBox {
+  const { left, top, width, height } = data.cellRect(rindex, cindex);
   return new DrawBox(left, top + yoffset, width, height, cellPaddingWidth);
 }
 
-export function renderCell(draw: Draw, data: DataProxy, rindex: number, cindex: number, yoffset: number = 0): void {
+export function renderCell(
+  draw: Draw,
+  data: DataProxy,
+  rindex: number,
+  cindex: number,
+  yoffset = 0
+): void {
   const { sortedRowMap, rows, cols } = data;
   if (rows.isHide(rindex) || cols.isHide(cindex)) return;
   let nrindex = rindex;
@@ -141,14 +149,18 @@ export function renderCell(draw: Draw, data: DataProxy, rindex: number, cindex: 
   const dbox = getDrawBox(data, rindex, cindex, yoffset);
   dbox.bgcolor = style.bgcolor;
   if (style.border !== undefined) {
-    dbox.setBorders(style.border as { top: unknown; bottom: unknown; left: unknown; right: unknown });
+    dbox.setBorders(
+      style.border as { top: unknown; bottom: unknown; left: unknown; right: unknown }
+    );
     draw.strokeBorders(dbox);
   }
   draw.rect(dbox, () => {
     // render text
     let cellText = '';
     if (!data.settings.evalPaused) {
-      cellText = _cell.render(cell.text || '', formulam, (y: number, x: number) => (data.getCellTextOrDefault(x, y)));
+      cellText = _cell.render(cell.text || '', formulam, (y: number, x: number) =>
+        data.getCellTextOrDefault(x, y)
+      );
     } else {
       cellText = cell.text || '';
     }
@@ -157,14 +169,19 @@ export function renderCell(draw: Draw, data: DataProxy, rindex: number, cindex: 
     }
     const font = Object.assign({}, style.font);
     font.size = getFontSizePxByPt(font.size);
-    draw.text(cellText, dbox, {
-      align: style.align,
-      valign: style.valign,
-      font,
-      color: style.color,
-      strike: style.strike,
-      underline: style.underline,
-    }, style.textwrap);
+    draw.text(
+      cellText,
+      dbox,
+      {
+        align: style.align,
+        valign: style.valign,
+        font,
+        color: style.color,
+        strike: style.strike,
+        underline: style.underline,
+      },
+      style.textwrap
+    );
     // error
     const error = data.validations.getError(rindex, cindex);
     if (error) {
@@ -191,11 +208,17 @@ function renderAutofilter(this: Table, viewRange: ViewRange | null): void {
   }
 }
 
-function renderContent(this: Table, viewRange: ViewRange, fw: number, fh: number, tx: number, ty: number): void {
+function renderContent(
+  this: Table,
+  viewRange: ViewRange,
+  fw: number,
+  fh: number,
+  tx: number,
+  ty: number
+): void {
   const { draw, data } = this;
   draw.save();
-  draw.translate(fw, fh)
-    .translate(tx, ty);
+  draw.translate(fw, fh).translate(tx, ty);
 
   const { exceptRowSet } = data;
   const filteredTranslateFunc = (ri: number): boolean => {
@@ -211,9 +234,12 @@ function renderContent(this: Table, viewRange: ViewRange, fw: number, fh: number
   // 1 render cell
   draw.save();
   draw.translate(0, -exceptRowTotalHeight);
-  viewRange.each((ri: number, ci: number) => {
-    renderCell(draw, data, ri, ci);
-  }, (ri: number) => filteredTranslateFunc(ri));
+  viewRange.each(
+    (ri: number, ci: number) => {
+      renderCell(draw, data, ri, ci);
+    },
+    (ri: number) => filteredTranslateFunc(ri)
+  );
   draw.restore();
 
   // 2 render mergeCell
@@ -240,8 +266,7 @@ function renderContent(this: Table, viewRange: ViewRange, fw: number, fh: number
 function renderSelectedHeaderCell(this: Table, x: number, y: number, w: number, h: number): void {
   const { draw } = this;
   draw.save();
-  draw.attr({ fillStyle: 'rgba(75, 137, 255, 0.08)' })
-    .fillRect(x, y, w, h);
+  draw.attr({ fillStyle: 'rgba(75, 137, 255, 0.08)' }).fillRect(x, y, w, h);
   draw.restore();
 }
 
@@ -251,7 +276,15 @@ function renderSelectedHeaderCell(this: Table, x: number, y: number, w: number, 
 // h: the fixed height of header
 // tx: moving distance on x-axis
 // ty: moving distance on y-axis
-function renderFixedHeaders(this: Table, type: string, viewRange: ViewRange, w: number, h: number, tx: number, ty: number): void {
+function renderFixedHeaders(
+  this: Table,
+  type: string,
+  viewRange: ViewRange,
+  w: number,
+  h: number,
+  tx: number,
+  ty: number
+): void {
   const { draw, data } = this;
   const sumHeight = viewRange.h;
   const sumWidth = viewRange.w;
@@ -264,9 +297,7 @@ function renderFixedHeaders(this: Table, type: string, viewRange: ViewRange, w: 
   if (type === 'all' || type === 'left') draw.fillRect(0, nty, w, sumHeight);
   if (type === 'all' || type === 'top') draw.fillRect(ntx, 0, sumWidth, h);
 
-  const {
-    sri, sci, eri, eci,
-  } = data.selector.range;
+  const { sri, sci, eri, eci } = data.selector.range;
   // draw text
   // text font, align...
   draw.attr(tableFixedHeaderStyle());
@@ -279,7 +310,7 @@ function renderFixedHeaders(this: Table, type: string, viewRange: ViewRange, w: 
       if (sri <= ii && ii < eri + 1) {
         renderSelectedHeaderCell.call(this, 0, y, w, rowHeight);
       }
-      draw.fillText(String(ii + 1), w / 2, y + (rowHeight / 2));
+      draw.fillText(String(ii + 1), w / 2, y + rowHeight / 2);
       if (i > 0 && data.rows.isHide(i - 1)) {
         draw.save();
         draw.attr({ strokeStyle: '#c6c6c6' });
@@ -299,7 +330,7 @@ function renderFixedHeaders(this: Table, type: string, viewRange: ViewRange, w: 
       if (sci <= ii && ii < eci + 1) {
         renderSelectedHeaderCell.call(this, x, 0, colWidth, h);
       }
-      draw.fillText(stringAt(ii), x + (colWidth / 2), h / 2);
+      draw.fillText(stringAt(ii), x + colWidth / 2, h / 2);
       if (i > 0 && data.cols.isHide(i - 1)) {
         draw.save();
         draw.attr({ strokeStyle: '#c6c6c6' });
@@ -317,18 +348,23 @@ function renderFixedLeftTopCell(this: Table, fw: number, fh: number): void {
   const { draw } = this;
   draw.save();
   // left-top-cell
-  draw.attr({ fillStyle: '#f4f5f8' })
-    .fillRect(0, 0, fw, fh);
+  draw.attr({ fillStyle: '#f4f5f8' }).fillRect(0, 0, fw, fh);
   draw.restore();
 }
 
-function renderContentGrid(this: Table, viewRange: ViewRange, fw: number, fh: number, tx: number, ty: number): void {
+function renderContentGrid(
+  this: Table,
+  viewRange: ViewRange,
+  fw: number,
+  fh: number,
+  tx: number,
+  ty: number
+): void {
   const { draw, data } = this;
   const { settings } = data;
 
   draw.save();
-  draw.attr(tableGridStyle)
-    .translate(fw + tx, fh + ty);
+  draw.attr(tableGridStyle).translate(fw + tx, fh + ty);
   if (!settings.showGrid) {
     draw.restore();
     return;
@@ -345,13 +381,17 @@ function renderContentGrid(this: Table, viewRange: ViewRange, fw: number, fh: nu
   draw.restore();
 }
 
-function renderFreezeHighlightLine(this: Table, fw: number, fh: number, ftw: number, fth: number): void {
+function renderFreezeHighlightLine(
+  this: Table,
+  fw: number,
+  fh: number,
+  ftw: number,
+  fth: number
+): void {
   const { draw, data } = this;
   const twidth = data.viewWidth() - fw;
   const theight = data.viewHeight() - fh;
-  draw.save()
-    .translate(fw, fh)
-    .attr({ strokeStyle: 'rgba(75, 137, 255, .6)' });
+  draw.save().translate(fw, fh).attr({ strokeStyle: 'rgba(75, 137, 255, .6)' });
   draw.line([0, fth], [twidth, fth]);
   draw.line([ftw, 0], [ftw, theight]);
   draw.restore();

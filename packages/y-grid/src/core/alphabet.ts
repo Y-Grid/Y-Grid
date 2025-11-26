@@ -1,4 +1,31 @@
-const alphabets = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+const alphabets = [
+  'A',
+  'B',
+  'C',
+  'D',
+  'E',
+  'F',
+  'G',
+  'H',
+  'I',
+  'J',
+  'K',
+  'L',
+  'M',
+  'N',
+  'O',
+  'P',
+  'Q',
+  'R',
+  'S',
+  'T',
+  'U',
+  'V',
+  'W',
+  'X',
+  'Y',
+  'Z',
+];
 
 /**
  * Convert column index to letter(s)
@@ -43,7 +70,7 @@ export function expr2xy(src: string): [number, number] {
       x += src.charAt(i);
     }
   }
-  return [indexAt(x), parseInt(y, 10) - 1];
+  return [indexAt(x), Number.parseInt(y, 10) - 1];
 }
 
 /**

@@ -1,23 +1,18 @@
-import { Element, h } from './element';
-import {
-  bind,
-  mouseMoveUp,
-  bindTouch,
-  createEventEmitter,
-} from './event';
+import { cssPrefix } from '../config';
+import { formulas } from '../core/formula';
+import ContextMenu from './contextmenu';
+import Editor from './editor';
+import { type Element, h } from './element';
+import { bind, bindTouch, createEventEmitter, mouseMoveUp } from './event';
+import { xtoast } from './message';
+import ModalValidation from './modal-validation';
+import Print from './print';
 import Resizer from './resizer';
 import Scrollbar from './scrollbar';
 import Selector from './selector';
-import Editor from './editor';
-import Print from './print';
-import ContextMenu from './contextmenu';
+import SortFilter from './sort-filter';
 import Table from './table';
 import Toolbar from './toolbar/index';
-import ModalValidation from './modal-validation';
-import SortFilter from './sort-filter';
-import { xtoast } from './message';
-import { cssPrefix } from '../config';
-import { formulas } from '../core/formula';
 
 interface DataProxy {
   settings: {
@@ -45,7 +40,12 @@ interface DataProxy {
     totalWidth: () => number;
   };
   scroll: { ri: number; ci: number; x: number; y: number };
-  selector: { ri: number; ci: number; range: { sri: number; sci: number; eri: number; eci: number }; multiple: () => boolean };
+  selector: {
+    ri: number;
+    ci: number;
+    range: { sri: number; sci: number; eri: number; eci: number };
+    multiple: () => boolean;
+  };
   freeze: [number, number];
   clipboard: { isClear: () => boolean };
   autoFilter: {
@@ -58,8 +58,18 @@ interface DataProxy {
   viewHeight: () => number;
   freezeTotalWidth: () => number;
   freezeTotalHeight: () => number;
-  getSelectedRect: () => { l: number; t: number; left: number; top: number; width: number; height: number };
-  getCellRectByXY: (x: number, y: number) => { ri: number; ci: number; left: number; top: number; width: number; height: number };
+  getSelectedRect: () => {
+    l: number;
+    t: number;
+    left: number;
+    top: number;
+    width: number;
+    height: number;
+  };
+  getCellRectByXY: (
+    x: number,
+    y: number
+  ) => { ri: number; ci: number; left: number; top: number; width: number; height: number };
   xyInSelectedRect: (x: number, y: number) => boolean;
   getCell: (ri: number, ci: number) => unknown;
   getSelectedCell: () => unknown;
@@ -119,12 +129,8 @@ function throttle(func: (...args: unknown[]) => void, wait: number): (...args: u
 }
 
 function scrollbarMove(this: Sheet): void {
-  const {
-    data, verticalScrollbar, horizontalScrollbar,
-  } = this;
-  const {
-    l, t, left, top, width, height,
-  } = data.getSelectedRect();
+  const { data, verticalScrollbar, horizontalScrollbar } = this;
+  const { l, t, left, top, width, height } = data.getSelectedRect();
   const tableOffset = this.getTableOffset();
   if (Math.abs(left) + width > tableOffset.width) {
     horizontalScrollbar.move({ left: l + width - tableOffset.width });
@@ -144,12 +150,16 @@ function scrollbarMove(this: Sheet): void {
   }
 }
 
-function selectorSet(this: Sheet, multiple: boolean, ri: number, ci: number, indexesUpdated: boolean = true, moving: boolean = false): void {
+function selectorSet(
+  this: Sheet,
+  multiple: boolean,
+  ri: number,
+  ci: number,
+  indexesUpdated = true,
+  moving = false
+): void {
   if (ri === -1 && ci === -1) return;
-  const {
-    table, selector, toolbar, data,
-    contextMenu,
-  } = this;
+  const { table, selector, toolbar, data, contextMenu } = this;
   const cell = data.getCell(ri, ci);
   if (multiple) {
     selector.setEnd(ri, ci, moving);
@@ -158,15 +168,13 @@ function selectorSet(this: Sheet, multiple: boolean, ri: number, ci: number, ind
     selector.set(ri, ci, indexesUpdated);
     this.trigger('cell-selected', cell, ri, ci);
   }
-  contextMenu.setMode((ri === -1 || ci === -1) ? 'row-col' : 'range');
+  contextMenu.setMode(ri === -1 || ci === -1 ? 'row-col' : 'range');
   toolbar.reset();
   table.render();
 }
 
 function selectorMove(this: Sheet, multiple: boolean, direction: string): void {
-  const {
-    selector, data,
-  } = this;
+  const { selector, data } = this;
   const { rows, cols } = data;
   let [ri, ci] = selector.indexes!;
   const { eri, eci } = selector.range!;
@@ -203,9 +211,7 @@ function overlayerMousemove(this: Sheet, evt: MouseEvent): void {
   if (evt.buttons !== 0) return;
   if ((evt.target as HTMLElement).className === `${cssPrefix}-resizer-hover`) return;
   const { offsetX, offsetY } = evt;
-  const {
-    rowResizer, colResizer, tableEl, data,
-  } = this;
+  const { rowResizer, colResizer, tableEl, data } = this;
   const { rows, cols } = data;
   if (offsetX > cols.indexWidth && offsetY > rows.height) {
     rowResizer.hide();
@@ -265,13 +271,13 @@ function overlayerMousescroll(this: Sheet, evt: WheelEvent): void {
     if (vertical > 0) {
       const ri = data.scroll.ri + 1;
       if (ri < rows.len) {
-        const rh = loopValue(ri, i => rows.getHeight(i));
+        const rh = loopValue(ri, (i) => rows.getHeight(i));
         verticalScrollbar.move({ top: (top || 0) + rh - 1 });
       }
     } else {
       const ri = data.scroll.ri - 1;
       if (ri >= 0) {
-        const rh = loopValue(ri, i => rows.getHeight(i));
+        const rh = loopValue(ri, (i) => rows.getHeight(i));
         verticalScrollbar.move({ top: ri === 0 ? 0 : (top || 0) - rh });
       }
     }
@@ -281,13 +287,13 @@ function overlayerMousescroll(this: Sheet, evt: WheelEvent): void {
     if (horizontal > 0) {
       const ci = data.scroll.ci + 1;
       if (ci < cols.len) {
-        const cw = loopValue(ci, i => cols.getWidth(i));
+        const cw = loopValue(ci, (i) => cols.getWidth(i));
         horizontalScrollbar.move({ left: (left || 0) + cw - 1 });
       }
     } else {
       const ci = data.scroll.ci - 1;
       if (ci >= 0) {
-        const cw = loopValue(ci, i => cols.getWidth(i));
+        const cw = loopValue(ci, (i) => cols.getWidth(i));
         horizontalScrollbar.move({ left: ci === 0 ? 0 : (left || 0) - cw });
       }
     }
@@ -296,7 +302,8 @@ function overlayerMousescroll(this: Sheet, evt: WheelEvent): void {
   const tempY = Math.abs(deltaY);
   const tempX = Math.abs(deltaX);
   const temp = Math.max(tempY, tempX);
-  if (/Firefox/i.test(window.navigator.userAgent)) throttle(() => moveY((evt as unknown as { detail: number }).detail), 50);
+  if (/Firefox/i.test(window.navigator.userAgent))
+    throttle(() => moveY((evt as unknown as { detail: number }).detail), 50);
   if (temp === tempX) throttle(() => moveX(deltaX), 50);
   if (temp === tempY) throttle(() => moveY(deltaY), 50);
 }
@@ -329,9 +336,7 @@ function horizontalScrollbarSet(this: Sheet): void {
 }
 
 function sheetFreeze(this: Sheet): void {
-  const {
-    selector, data, editor,
-  } = this;
+  const { selector, data, editor } = this;
   const [ri, ci] = data.freeze;
   if (ri > 0 || ci > 0) {
     const fwidth = data.freezeTotalWidth();
@@ -342,15 +347,7 @@ function sheetFreeze(this: Sheet): void {
 }
 
 function sheetReset(this: Sheet): void {
-  const {
-    tableEl,
-    overlayerEl,
-    overlayerCEl,
-    table,
-    toolbar,
-    selector,
-    el,
-  } = this;
+  const { tableEl, overlayerEl, overlayerCEl, table, toolbar, selector, el } = this;
   const tOffset = this.getTableOffset();
   const vRect = this.getRect();
   tableEl.attr({ width: String(vRect.width), height: String(vRect.height) });
@@ -395,7 +392,7 @@ function paste(this: Sheet, what: string, evt?: ClipboardEvent): void {
       this.trigger('pasted-clipboard', rows);
     };
     data.pasteFromSystemClipboard(resetSheet, eventTrigger);
-  } else if (data.paste(what, msg => xtoast('Tip', msg))) {
+  } else if (data.paste(what, (msg) => xtoast('Tip', msg))) {
     sheetReset.call(this);
   } else if (evt) {
     const cdata = evt.clipboardData!.getData('text/plain');
@@ -430,22 +427,23 @@ function toolbarChangePaintformatPaste(this: Sheet): void {
 }
 
 function overlayerMousedown(this: Sheet, evt: MouseEvent): void {
-  const {
-    selector, data, table, sortFilter,
-  } = this;
+  const { selector, data, table, sortFilter } = this;
   const { offsetX, offsetY } = evt;
   const isAutofillEl = (evt.target as HTMLElement).className === `${cssPrefix}-selector-corner`;
   const cellRect = data.getCellRectByXY(offsetX, offsetY);
-  const {
-    left, top, width, height,
-  } = cellRect;
+  const { left, top, width, height } = cellRect;
   let { ri, ci } = cellRect;
   const { autoFilter } = data;
   if (autoFilter.includes(ri, ci)) {
     if (left + width - 20 < offsetX && top + height - 20 < offsetY) {
       const items = autoFilter.items(ci, (r, c) => data.rows.getCell(r, c));
       sortFilter.hide();
-      sortFilter.set(ci, items, autoFilter.getFilter(ci) as { value: string[] } | null, autoFilter.getSort(ci) as { order: string; asc: () => boolean; desc: () => boolean } | null);
+      sortFilter.set(
+        ci,
+        items,
+        autoFilter.getFilter(ci) as { value: string[] } | null,
+        autoFilter.getSort(ci) as { order: string; asc: () => boolean; desc: () => boolean } | null
+      );
       sortFilter.setOffset({ left, top: top + height + 2 });
       return;
     }
@@ -458,22 +456,26 @@ function overlayerMousedown(this: Sheet, evt: MouseEvent): void {
       selectorSet.call(this, false, ri, ci);
     }
 
-    mouseMoveUp(window, (e: MouseEvent) => {
-      ({ ri, ci } = data.getCellRectByXY(e.offsetX, e.offsetY));
-      if (isAutofillEl) {
-        selector.showAutofill(ri, ci);
-      } else if (e.buttons === 1 && !e.shiftKey) {
-        selectorSet.call(this, true, ri, ci, true, true);
-      }
-    }, () => {
-      if (isAutofillEl && selector.arange && data.settings.mode !== 'read') {
-        if (data.autofill(selector.arange, 'all', msg => xtoast('Tip', msg))) {
-          table.render();
+    mouseMoveUp(
+      window,
+      (e: MouseEvent) => {
+        ({ ri, ci } = data.getCellRectByXY(e.offsetX, e.offsetY));
+        if (isAutofillEl) {
+          selector.showAutofill(ri, ci);
+        } else if (e.buttons === 1 && !e.shiftKey) {
+          selectorSet.call(this, true, ri, ci, true, true);
         }
+      },
+      () => {
+        if (isAutofillEl && selector.arange && data.settings.mode !== 'read') {
+          if (data.autofill(selector.arange, 'all', (msg) => xtoast('Tip', msg))) {
+            table.render();
+          }
+        }
+        selector.hideAutofill();
+        toolbarChangePaintformatPaste.call(this);
       }
-      selector.hideAutofill();
-      toolbarChangePaintformatPaste.call(this);
-    });
+    );
   }
 
   if (!isAutofillEl && evt.buttons === 1) {
@@ -498,7 +500,10 @@ function editorSet(this: Sheet): void {
   const { editor, data } = this;
   if (data.settings.mode === 'read') return;
   editorSetOffset.call(this);
-  editor.setCell(data.getSelectedCell() as { text?: string; editable?: boolean } | null, data.getSelectedValidator() as { type: string; values?: () => { key: string }[] } | undefined);
+  editor.setCell(
+    data.getSelectedCell() as { text?: string; editable?: boolean } | null,
+    data.getSelectedValidator() as { type: string; values?: () => { key: string }[] } | undefined
+  );
   clearClipboard.call(this);
 }
 
@@ -556,7 +561,7 @@ function colResizerFinished(this: Sheet, cRect: { ci: number }, distance: number
   editorSetOffset.call(this);
 }
 
-function dataSetCellText(this: Sheet, text: string, state: string = 'finished'): void {
+function dataSetCellText(this: Sheet, text: string, state = 'finished'): void {
   const { data, table } = this;
   if (data.settings.mode === 'read') return;
   data.setSelectedCellText(text, state);
@@ -633,7 +638,13 @@ function toolbarChange(this: Sheet, type: string, value: unknown): void {
   }
 }
 
-function sortFilterChange(this: Sheet, ci: number, order: string | null, operator: string, value: string[]): void {
+function sortFilterChange(
+  this: Sheet,
+  ci: number,
+  order: string | null,
+  operator: string,
+  value: string[]
+): void {
   this.data.setAutoFilter(ci, order, operator, value);
   sheetReset.call(this);
 }
@@ -694,7 +705,8 @@ function sheetInitEvents(this: Sheet): void {
   });
 
   toolbar.change = (type: string, value: unknown) => toolbarChange.call(this, type, value);
-  sortFilter.ok = (ci: number, order: string | null, o: string, v: string[]) => sortFilterChange.call(this, ci, order, o, v);
+  sortFilter.ok = (ci: number, order: string | null, o: string, v: string[]) =>
+    sortFilterChange.call(this, ci, order, o, v);
 
   rowResizer.finishedFn = (cRect, distance) => {
     rowResizerFinished.call(this, cRect as { ri: number }, distance);
@@ -726,7 +738,9 @@ function sheetInitEvents(this: Sheet): void {
   };
   contextMenu.itemClick = (type: string) => {
     if (type === 'validation') {
-      modalValidation.setValue(this.data.getSelectedValidation() as Parameters<typeof modalValidation.setValue>[0]);
+      modalValidation.setValue(
+        this.data.getSelectedValidation() as Parameters<typeof modalValidation.setValue>[0]
+      );
     } else if (type === 'copy') {
       copy.call(this);
     } else if (type === 'cut') {
@@ -767,9 +781,7 @@ function sheetInitEvents(this: Sheet): void {
   bind(window, 'keydown', (evt) => {
     if (!this.focusing) return;
     const keyCode = (evt as KeyboardEvent).keyCode || (evt as KeyboardEvent).which;
-    const {
-      key, ctrlKey, shiftKey, metaKey,
-    } = evt as KeyboardEvent;
+    const { key, ctrlKey, shiftKey, metaKey } = evt as KeyboardEvent;
     if (ctrlKey || metaKey) {
       switch (keyCode) {
         case 90:
@@ -869,10 +881,11 @@ function sheetInitEvents(this: Sheet): void {
       if (key === 'Delete') {
         insertDeleteRowColumn.call(this, 'delete-cell-text');
         evt.preventDefault();
-      } else if ((keyCode >= 65 && keyCode <= 90)
-        || (keyCode >= 48 && keyCode <= 57)
-        || (keyCode >= 96 && keyCode <= 105)
-        || key === '='
+      } else if (
+        (keyCode >= 65 && keyCode <= 90) ||
+        (keyCode >= 48 && keyCode <= 57) ||
+        (keyCode >= 96 && keyCode <= 105) ||
+        key === '='
       ) {
         dataSetCellText.call(this, key, 'input');
         editorSet.call(this);
@@ -908,7 +921,11 @@ export default class Sheet {
     this.eventMap = createEventEmitter();
     const { view, showToolbar, showContextmenu } = data.settings;
     this.el = h('div', `${cssPrefix}-sheet`);
-    this.toolbar = new Toolbar(data as unknown as ConstructorParameters<typeof Toolbar>[0], () => view.width, !showToolbar);
+    this.toolbar = new Toolbar(
+      data as unknown as ConstructorParameters<typeof Toolbar>[0],
+      () => view.width,
+      !showToolbar
+    );
     this.print = new Print(data as unknown as ConstructorParameters<typeof Print>[0]);
     targetEl.children(this.toolbar.el, this.el, this.print.el);
     this.data = data;
@@ -920,18 +937,16 @@ export default class Sheet {
     this.editor = new Editor(
       formulas as unknown as ConstructorParameters<typeof Editor>[0],
       () => this.getTableOffset(),
-      data.rows.height,
+      data.rows.height
     );
     this.modalValidation = new ModalValidation();
     this.contextMenu = new ContextMenu(() => this.getRect(), !showContextmenu);
     this.selector = new Selector(data as unknown as ConstructorParameters<typeof Selector>[0]);
-    this.overlayerCEl = h('div', `${cssPrefix}-overlayer-content`)
-      .children(
-        this.editor.el,
-        this.selector.el,
-      );
-    this.overlayerEl = h('div', `${cssPrefix}-overlayer`)
-      .child(this.overlayerCEl);
+    this.overlayerCEl = h('div', `${cssPrefix}-overlayer-content`).children(
+      this.editor.el,
+      this.selector.el
+    );
+    this.overlayerEl = h('div', `${cssPrefix}-overlayer`).child(this.overlayerCEl);
     this.sortFilter = new SortFilter();
     this.el.children(
       this.tableEl,
@@ -942,9 +957,12 @@ export default class Sheet {
       this.horizontalScrollbar.el,
       this.contextMenu.el,
       this.modalValidation.el,
-      this.sortFilter.el,
+      this.sortFilter.el
     );
-    this.table = new Table(this.tableEl.el as HTMLCanvasElement, data as unknown as ConstructorParameters<typeof Table>[1]);
+    this.table = new Table(
+      this.tableEl.el as HTMLCanvasElement,
+      data as unknown as ConstructorParameters<typeof Table>[1]
+    );
     this.focusing = false;
     sheetInitEvents.call(this);
     sheetReset.call(this);

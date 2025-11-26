@@ -1,6 +1,6 @@
-import DropdownItem from './dropdown-item';
+import type Dropdown from '../dropdown';
 import DropdownColor from '../dropdown-color';
-import Dropdown from '../dropdown';
+import DropdownItem from './dropdown-item';
 
 export default class FillColor extends DropdownItem {
   constructor(color: string) {

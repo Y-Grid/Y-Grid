@@ -1,7 +1,7 @@
-import type { Element } from './element';
-import { h } from './element';
 import { cssPrefix } from '../config';
 import { CellRange } from '../core/cell-range';
+import type { Element } from './element';
+import { h } from './element';
 
 interface SelectorOffset {
   left: number;
@@ -48,19 +48,16 @@ class SelectorElement {
     this.autoFocus = autoFocus;
     this.inputChange = () => {};
     this.cornerEl = h('div', `${cssPrefix}-selector-corner`);
-    this.areaEl = h('div', `${cssPrefix}-selector-area`)
-      .child(this.cornerEl).hide();
+    this.areaEl = h('div', `${cssPrefix}-selector-area`).child(this.cornerEl).hide();
     this.clipboardEl = h('div', `${cssPrefix}-selector-clipboard`).hide();
     this.autofillEl = h('div', `${cssPrefix}-selector-autofill`).hide();
-    this.el = h('div', `${cssPrefix}-selector`)
-      .css('z-index', `${startZIndex}`);
+    this.el = h('div', `${cssPrefix}-selector`).css('z-index', `${startZIndex}`);
     this.el.children(this.areaEl, this.clipboardEl, this.autofillEl);
     this.el.hide();
     if (useHideInput) {
-      this.hideInput = h('input', '')
-        .on('compositionend', (evt) => {
-          this.inputChange((evt.target as HTMLInputElement).value);
-        });
+      this.hideInput = h('input', '').on('compositionend', (evt) => {
+        this.inputChange((evt.target as HTMLInputElement).value);
+      });
       this.hideInputDiv = h('div', 'hide-input').child(this.hideInput);
       this.el.child(this.hideInputDiv);
     }
@@ -79,9 +76,7 @@ class SelectorElement {
   }
 
   setAreaOffset(v: SelectorOffset): void {
-    const {
-      left, top, width, height,
-    } = v;
+    const { left, top, width, height } = v;
     const of = {
       width: width - selectorHeightBorderWidth + 0.8,
       height: height - selectorHeightBorderWidth + 0.8,
@@ -102,9 +97,7 @@ class SelectorElement {
   }
 
   setClipboardOffset(v: SelectorOffset): void {
-    const {
-      left, top, width, height,
-    } = v;
+    const { left, top, width, height } = v;
     this.clipboardEl.offset({
       left,
       top,
@@ -114,9 +107,7 @@ class SelectorElement {
   }
 
   showAutofill(v: SelectorOffset): void {
-    const {
-      left, top, width, height,
-    } = v;
+    const { left, top, width, height } = v;
     this.autofillEl.offset({
       width: width - selectorHeightBorderWidth,
       height: height - selectorHeightBorderWidth,
@@ -141,15 +132,13 @@ class SelectorElement {
 
 function calBRAreaOffset(this: Selector, offset: SelectorOffset): SelectorOffset {
   const { data } = this;
-  const {
-    left, top, width, height, scroll, l, t,
-  } = offset;
+  const { left, top, width, height, scroll, l, t } = offset;
   const ftwidth = data.freezeTotalWidth();
   const ftheight = data.freezeTotalHeight();
   let left0 = left - ftwidth;
-  if (ftwidth > (l || 0)) left0 -= (scroll?.x || 0);
+  if (ftwidth > (l || 0)) left0 -= scroll?.x || 0;
   let top0 = top - ftheight;
-  if (ftheight > (t || 0)) top0 -= (scroll?.y || 0);
+  if (ftheight > (t || 0)) top0 -= scroll?.y || 0;
   return {
     left: left0,
     top: top0,
@@ -160,27 +149,29 @@ function calBRAreaOffset(this: Selector, offset: SelectorOffset): SelectorOffset
 
 function calTAreaOffset(this: Selector, offset: SelectorOffset): SelectorOffset {
   const { data } = this;
-  const {
-    left, width, height, l, t, scroll,
-  } = offset;
+  const { left, width, height, l, t, scroll } = offset;
   const ftwidth = data.freezeTotalWidth();
   let left0 = left - ftwidth;
-  if (ftwidth > (l || 0)) left0 -= (scroll?.x || 0);
+  if (ftwidth > (l || 0)) left0 -= scroll?.x || 0;
   return {
-    left: left0, top: t || 0, width, height,
+    left: left0,
+    top: t || 0,
+    width,
+    height,
   };
 }
 
 function calLAreaOffset(this: Selector, offset: SelectorOffset): SelectorOffset {
   const { data } = this;
-  const {
-    top, width, height, l, t, scroll,
-  } = offset;
+  const { top, width, height, l, t, scroll } = offset;
   const ftheight = data.freezeTotalHeight();
   let top0 = top - ftheight;
-  if (ftheight > (t || 0)) top0 -= (scroll?.y || 0);
+  if (ftheight > (t || 0)) top0 -= scroll?.y || 0;
   return {
-    left: l || 0, top: top0, width, height,
+    left: l || 0,
+    top: top0,
+    width,
+    height,
   };
 }
 
@@ -273,12 +264,7 @@ export default class Selector {
     this.range = null;
     this.arange = null;
     this.el = h('div', `${cssPrefix}-selectors`);
-    this.el.children(
-      this.tl.el,
-      this.t.el,
-      this.l.el,
-      this.br.el,
-    );
+    this.el.children(this.tl.el, this.t.el, this.l.el, this.br.el);
     this.el.hide();
 
     // for performance
@@ -299,9 +285,7 @@ export default class Selector {
   }
 
   resetOffset(): void {
-    const {
-      data, tl, t, l, br,
-    } = this;
+    const { data, tl, t, l, br } = this;
     const freezeHeight = data.freezeTotalHeight();
     const freezeWidth = data.freezeTotalWidth();
     if (freezeHeight > 0 || freezeWidth > 0) {
@@ -382,9 +366,7 @@ export default class Selector {
   showAutofill(ri: number, ci: number): void {
     if (ri === -1 && ci === -1) return;
     if (!this.range) return;
-    const {
-      sri, sci, eri, eci,
-    } = this.range;
+    const { sri, sci, eri, eci } = this.range;
     const [nri, nci] = [ri, ci];
     const srn = sri - ri;
     const scn = sci - ci;
@@ -410,9 +392,7 @@ export default class Selector {
       const offset = this.data.getRect(this.arange);
       offset.width += 2;
       offset.height += 2;
-      const {
-        br, l, t, tl,
-      } = this;
+      const { br, l, t, tl } = this;
       br.showAutofill(calBRAreaOffset.call(this, offset));
       l.showAutofill(calLAreaOffset.call(this, offset));
       t.showAutofill(calTAreaOffset.call(this, offset));

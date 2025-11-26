@@ -181,15 +181,15 @@ const evalSuffixExpr = (srcStack, formulaMap, cellRender, cellList) => {
       if (!Number.isNaN(left)) left = Number(left);
       let ret = false;
       if (fc === '=') {
-        ret = (left === top);
+        ret = left === top;
       } else if (expr === '>') {
-        ret = (left > top);
+        ret = left > top;
       } else if (expr === '>=') {
-        ret = (left >= top);
+        ret = left >= top;
       } else if (expr === '<') {
-        ret = (left < top);
+        ret = left < top;
       } else if (expr === '<=') {
-        ret = (left <= top);
+        ret = left <= top;
       }
       stack.push(ret);
     } else if (Array.isArray(expr)) {
@@ -222,7 +222,7 @@ const cellRender = (src, formulaMap, getCellText, cellList = []) => {
       stack,
       formulaMap,
       (x, y) => cellRender(getCellText(x, y), formulaMap, getCellText, cellList),
-      cellList,
+      cellList
     );
   }
   return src;
@@ -231,6 +231,4 @@ const cellRender = (src, formulaMap, getCellText, cellList = []) => {
 export default {
   render: cellRender,
 };
-export {
-  infixExprToSuffixExpr,
-};
+export { infixExprToSuffixExpr };

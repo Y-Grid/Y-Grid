@@ -1,7 +1,7 @@
-import { Element, h, Offset } from './element';
-import Suggest, { SuggestItem } from './suggest';
-import Datepicker from './datepicker';
 import { cssPrefix } from '../config';
+import Datepicker from './datepicker';
+import { type Element, type Offset, h } from './element';
+import Suggest, { type SuggestItem } from './suggest';
 
 interface CellData {
   text?: string;
@@ -33,11 +33,9 @@ type ChangeCallback = (action: string, value?: string) => void;
 function resetTextareaSize(this: Editor): void {
   const { inputText } = this;
   if (!/^\s*$/.test(inputText)) {
-    const {
-      textlineEl, textEl, areaOffset,
-    } = this;
+    const { textlineEl, textEl, areaOffset } = this;
     const txts = inputText.split('\n');
-    const maxTxtSize = Math.max(...txts.map(it => it.length));
+    const maxTxtSize = Math.max(...txts.map((it) => it.length));
     const tlOffset = textlineEl.offset() as Offset;
     const fontWidth = (tlOffset.width || 0) / inputText.length;
     const tlineWidth = (maxTxtSize + 1) * fontWidth + 5;
@@ -47,8 +45,8 @@ function resetTextareaSize(this: Editor): void {
       let twidth = tlineWidth;
       if (tlineWidth > maxWidth) {
         twidth = maxWidth;
-        h1 += parseInt(String(tlineWidth / maxWidth), 10);
-        h1 += (tlineWidth % maxWidth) > 0 ? 1 : 0;
+        h1 += Number.parseInt(String(tlineWidth / maxWidth), 10);
+        h1 += tlineWidth % maxWidth > 0 ? 1 : 0;
       }
       textEl.css('width', `${twidth}px`);
     }
@@ -87,7 +85,7 @@ function inputEventHandler(this: Editor, evt: Event): void {
   const { suggest, textlineEl, validator } = this;
   const { cell } = this;
   if (cell !== null) {
-    if (('editable' in cell && cell.editable === true) || (cell.editable === undefined)) {
+    if (('editable' in cell && cell.editable === true) || cell.editable === undefined) {
       this.inputText = v;
       if (validator) {
         if (validator.type === 'list') {
@@ -214,21 +212,15 @@ export default class Editor {
       this.clear();
     });
     this.textEl = h('textarea', '')
-      .on('input', evt => inputEventHandler.call(this, evt))
+      .on('input', (evt) => inputEventHandler.call(this, evt))
       .on('paste.stop', () => {})
-      .on('keydown', evt => keydownEventHandler.call(this, evt as KeyboardEvent));
+      .on('keydown', (evt) => keydownEventHandler.call(this, evt as KeyboardEvent));
     this.textlineEl = h('div', 'textline');
     this.areaEl = h('div', `${cssPrefix}-editor-area`)
-      .children(
-        this.textEl,
-        this.textlineEl,
-        this.suggest.el,
-        this.datepicker.el,
-      )
+      .children(this.textEl, this.textlineEl, this.suggest.el, this.datepicker.el)
       .on('mousemove.stop', () => {})
       .on('mousedown.stop', () => {});
-    this.el = h('div', `${cssPrefix}-editor`)
-      .child(this.areaEl).hide();
+    this.el = h('div', `${cssPrefix}-editor`).child(this.areaEl).hide();
     this.suggest.bindInputEvents(this.textEl);
 
     this.areaOffset = null;
@@ -257,15 +249,11 @@ export default class Editor {
     this.datepicker.hide();
   }
 
-  setOffset(offset: EditorOffset | null, suggestPosition: string = 'top'): void {
-    const {
-      textEl, areaEl, suggest, freeze, el,
-    } = this;
+  setOffset(offset: EditorOffset | null, suggestPosition = 'top'): void {
+    const { textEl, areaEl, suggest, freeze, el } = this;
     if (offset) {
       this.areaOffset = offset;
-      const {
-        left, top, width, height, l, t,
-      } = offset;
+      const { left, top, width, height, l, t } = offset;
       const elOffset: { left: number; top: number } = { left: 0, top: 0 };
       // top left
       if (freeze.w > (l || 0) && freeze.h > (t || 0)) {
@@ -279,7 +267,10 @@ export default class Editor {
         elOffset.left = freeze.w;
       }
       el.offset(elOffset);
-      areaEl.offset({ left: (left || 0) - elOffset.left - 0.8, top: (top || 0) - elOffset.top - 0.8 });
+      areaEl.offset({
+        left: (left || 0) - elOffset.left - 0.8,
+        top: (top || 0) - elOffset.top - 0.8,
+      });
       textEl.offset({ width: (width || 0) - 9 + 0.8, height: (height || 0) - 3 + 0.8 });
       const sOffset: Record<string, number> = { left: 0 };
       sOffset[suggestPosition] = height || 0;
@@ -294,7 +285,7 @@ export default class Editor {
     const { el, datepicker, suggest } = this;
     el.show();
     this.cell = cell;
-    const text = (cell && cell.text) || '';
+    const text = cell?.text || '';
     this.setText(text);
 
     this.validator = validator;

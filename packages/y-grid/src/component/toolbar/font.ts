@@ -1,6 +1,6 @@
-import DropdownItem from './dropdown-item';
+import type Dropdown from '../dropdown';
 import DropdownFont from '../dropdown-font';
-import Dropdown from '../dropdown';
+import DropdownItem from './dropdown-item';
 
 interface FontItem {
   key: string;

@@ -1,9 +1,9 @@
-import { Element, h } from './element';
-import { cssPrefix } from '../config';
-import Button from './button';
 import { Draw } from '../canvas/draw';
-import { renderCell } from './table';
+import { cssPrefix } from '../config';
 import { t } from '../locale/locale';
+import Button from './button';
+import { type Element, h } from './element';
+import { renderCell } from './table';
 
 // resolution: 72 => 595 x 842
 // 150 => 1240 x 1754
@@ -42,14 +42,14 @@ const PAGER_SIZES: PagerSize[] = [
   ['A3', 11.69, 16.54],
   ['A4', 8.27, 11.69],
   ['A5', 5.83, 8.27],
-  ['B4', 9.84, 13.90],
+  ['B4', 9.84, 13.9],
   ['B5', 6.93, 9.84],
 ];
 
 const PAGER_ORIENTATIONS: Orientation[] = ['landscape', 'portrait'];
 
 function inches2px(inc: number): number {
-  return parseInt(String(96 * inc), 10);
+  return Number.parseInt(String(96 * inc), 10);
 }
 
 function btnClick(this: Print, type: string): void {
@@ -102,37 +102,48 @@ export default class Print {
     this.contentEl = h('div', '-content');
     this.el = h('div', `${cssPrefix}-print`)
       .children(
-        h('div', `${cssPrefix}-print-bar`)
-          .children(
-            h('div', '-title').child('Print settings'),
-            h('div', '-right').children(
-              h('div', `${cssPrefix}-buttons`).children(
-                new Button('cancel').on('click', btnClick.bind(this, 'cancel')),
-                new Button('next', 'primary').on('click', btnClick.bind(this, 'next')),
+        h('div', `${cssPrefix}-print-bar`).children(
+          h('div', '-title').child('Print settings'),
+          h('div', '-right').children(
+            h('div', `${cssPrefix}-buttons`).children(
+              new Button('cancel').on('click', btnClick.bind(this, 'cancel')),
+              new Button('next', 'primary').on('click', btnClick.bind(this, 'next'))
+            )
+          )
+        ),
+        h('div', `${cssPrefix}-print-content`).children(
+          this.contentEl,
+          h('div', '-sider').child(
+            h('form', '').children(
+              h('fieldset', '').children(
+                h('label', '').child(`${t('print.size')}`),
+                h('select', '')
+                  .children(
+                    ...PAGER_SIZES.map((it, index) =>
+                      h('option', '')
+                        .attr('value', String(index))
+                        .child(`${it[0]} ( ${it[1]}''x${it[2]}'' )`)
+                    )
+                  )
+                  .on('change', pagerSizeChange.bind(this))
               ),
-            ),
-          ),
-        h('div', `${cssPrefix}-print-content`)
-          .children(
-            this.contentEl,
-            h('div', '-sider').child(
-              h('form', '').children(
-                h('fieldset', '').children(
-                  h('label', '').child(`${t('print.size')}`),
-                  h('select', '').children(
-                    ...PAGER_SIZES.map((it, index) => h('option', '').attr('value', String(index)).child(`${it[0]} ( ${it[1]}''x${it[2]}'' )`)),
-                  ).on('change', pagerSizeChange.bind(this)),
-                ),
-                h('fieldset', '').children(
-                  h('label', '').child(`${t('print.orientation')}`),
-                  h('select', '').children(
-                    ...PAGER_ORIENTATIONS.map((it, index) => h('option', '').attr('value', String(index)).child(`${(t('print.orientations') as string[])[index]}`)),
-                  ).on('change', pagerOrientationChange.bind(this)),
-                ),
-              ),
-            ),
-          ),
-      ).hide();
+              h('fieldset', '').children(
+                h('label', '').child(`${t('print.orientation')}`),
+                h('select', '')
+                  .children(
+                    ...PAGER_ORIENTATIONS.map((_it, index) =>
+                      h('option', '')
+                        .attr('value', String(index))
+                        .child(`${(t('print.orientations') as string[])[index]}`)
+                    )
+                  )
+                  .on('change', pagerOrientationChange.bind(this))
+              )
+            )
+          )
+        )
+      )
+      .hide();
   }
 
   resetData(data: DataProxy): void {
@@ -145,7 +156,7 @@ export default class Print {
     const iwidth = width - padding * 2;
     const iheight = height - padding * 2;
     const cr = data.contentRange();
-    const pages = parseInt(String(cr.h / iheight), 10) + 1;
+    const pages = Number.parseInt(String(cr.h / iheight), 10) + 1;
     const scale = iwidth / cr.w;
     let left = padding;
     const top = padding;

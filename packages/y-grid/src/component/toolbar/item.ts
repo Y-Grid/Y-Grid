@@ -1,7 +1,7 @@
 import { cssPrefix } from '../../config';
-import tooltip from '../tooltip';
-import { h, Element } from '../element';
 import { t } from '../../locale/locale';
+import { type Element, h } from '../element';
+import tooltip from '../tooltip';
 
 export type ChangeCallback = (...args: unknown[]) => void;
 

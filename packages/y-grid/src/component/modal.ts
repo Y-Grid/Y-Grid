@@ -1,7 +1,7 @@
-import { Element, h } from './element';
-import Icon from './icon';
 import { cssPrefix } from '../config';
+import { type Element, h } from './element';
 import { bind, unbind } from './event';
+import Icon from './icon';
 
 declare global {
   interface Window {
@@ -14,15 +14,18 @@ export default class Modal {
   el: Element;
   dimmer!: Element;
 
-  constructor(title: string, content: Element[], width: string = '600px') {
+  constructor(title: string, content: Element[], width = '600px') {
     this.title = title;
-    this.el = h('div', `${cssPrefix}-modal`).css('width', width).children(
-      h('div', `${cssPrefix}-modal-header`).children(
-        new Icon('close').on('click.stop', () => this.hide()),
-        this.title,
-      ),
-      h('div', `${cssPrefix}-modal-content`).children(...content),
-    ).hide();
+    this.el = h('div', `${cssPrefix}-modal`)
+      .css('width', width)
+      .children(
+        h('div', `${cssPrefix}-modal-header`).children(
+          new Icon('close').on('click.stop', () => this.hide()),
+          this.title
+        ),
+        h('div', `${cssPrefix}-modal-content`).children(...content)
+      )
+      .hide();
   }
 
   show(): void {
@@ -48,7 +51,7 @@ export default class Modal {
     document.body.removeChild(this.dimmer.el);
     if (window.xkeydownEsc) {
       unbind(window, 'keydown', window.xkeydownEsc as EventListener);
-      delete window.xkeydownEsc;
+      window.xkeydownEsc = undefined;
     }
   }
 }

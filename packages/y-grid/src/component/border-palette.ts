@@ -1,8 +1,8 @@
-import { Element, h } from './element';
-import Icon from './icon';
+import { cssPrefix } from '../config';
 import DropdownColor from './dropdown-color';
 import DropdownLineType from './dropdown-linetype';
-import { cssPrefix } from '../config';
+import { type Element, h } from './element';
+import Icon from './icon';
 
 export interface BorderPaletteValue {
   mode: string;
@@ -13,9 +13,7 @@ export interface BorderPaletteValue {
 type BorderChangeCallback = (value: BorderPaletteValue) => void;
 
 function buildTable(...trs: Element[]): Element {
-  return h('table', '').child(
-    h('tbody', '').children(...trs),
-  );
+  return h('table', '').child(h('tbody', '').children(...trs));
 }
 
 export default class BorderPalette {
@@ -44,13 +42,13 @@ export default class BorderPalette {
 
     const buildTd = (iconName: string): Element => {
       return h('td', '').child(
-        h('div', `${cssPrefix}-border-palette-cell`).child(
-          new Icon(`border-${iconName}`),
-        ).on('click', () => {
-          this.mode = iconName;
-          const { mode, style, color } = this;
-          this.change({ mode, style, color });
-        }),
+        h('div', `${cssPrefix}-border-palette-cell`)
+          .child(new Icon(`border-${iconName}`))
+          .on('click', () => {
+            this.mode = iconName;
+            const { mode, style, color } = this;
+            this.change({ mode, style, color });
+          })
       );
     };
 
@@ -59,18 +57,18 @@ export default class BorderPalette {
         h('td', `${cssPrefix}-border-palette-left`).child(
           buildTable(
             h('tr', '').children(
-              ...['all', 'inside', 'horizontal', 'vertical', 'outside'].map(it => buildTd(it)),
+              ...['all', 'inside', 'horizontal', 'vertical', 'outside'].map((it) => buildTd(it))
             ),
             h('tr', '').children(
-              ...['left', 'top', 'right', 'bottom', 'none'].map(it => buildTd(it)),
-            ),
-          ),
+              ...['left', 'top', 'right', 'bottom', 'none'].map((it) => buildTd(it))
+            )
+          )
         ),
         h('td', `${cssPrefix}-border-palette-right`).children(
           h('div', `${cssPrefix}-toolbar-btn`).child(this.ddColor.el),
-          h('div', `${cssPrefix}-toolbar-btn`).child(this.ddType.el),
-        ),
-      ),
+          h('div', `${cssPrefix}-toolbar-btn`).child(this.ddType.el)
+        )
+      )
     );
     this.el.child(table);
   }

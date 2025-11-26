@@ -1,11 +1,12 @@
-import Item from './item';
+import type { Element } from '../element';
 import Icon from '../icon';
-import { Element } from '../element';
+import Item from './item';
 
 export default class ToggleItem extends Item {
   element(): Element {
     const { tag } = this;
-    return super.element()
+    return super
+      .element()
       .child(new Icon(tag))
       .on('click', () => this.click());
   }

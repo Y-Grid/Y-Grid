@@ -1,8 +1,8 @@
-import { Element, h } from './element';
 import { cssPrefix } from '../config';
 import { t } from '../locale/locale';
+import { type Element, h } from './element';
 import FormInput from './form-input';
-import FormSelect from './form-select';
+import type FormSelect from './form-select';
 
 const patterns: Record<string, RegExp> = {
   number: /(^\d+$)|(^\d+(\.\d{0,4})?$)/,
@@ -37,8 +37,11 @@ export default class FormField {
     this.tip = h('div', 'tip').child('tip').hide();
     this.input = input;
     this.input.vchange = () => this.validate();
-    this.el = h('div', `${cssPrefix}-form-field`)
-      .children(this.label as Element, input.el, this.tip);
+    this.el = h('div', `${cssPrefix}-form-field`).children(
+      this.label as Element,
+      input.el,
+      this.tip
+    );
   }
 
   isShow(): boolean {
@@ -65,9 +68,7 @@ export default class FormField {
   }
 
   validate(): boolean {
-    const {
-      input, rule, tip, el,
-    } = this;
+    const { input, rule, tip, el } = this;
     const v = input.val() as string;
     if (rule.required) {
       if (/^\s*$/.test(v)) {

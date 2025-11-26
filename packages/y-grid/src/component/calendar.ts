@@ -1,6 +1,6 @@
-import { Element, h } from './element';
-import Icon from './icon';
 import { t } from '../locale/locale';
+import { type Element, h } from './element';
+import Icon from './icon';
 
 interface DayInfo {
   d: Date;
@@ -49,28 +49,27 @@ export default class Calendar {
     this.headerLeftEl = h('div', 'calendar-header-left');
     this.bodyEl = h('tbody', '');
     this.buildAll();
-    this.el = h('div', 'x-spreadsheet-calendar')
-      .children(
-        h('div', 'calendar-header').children(
-          this.headerLeftEl,
-          h('div', 'calendar-header-right').children(
-            h('a', 'calendar-prev')
-              .on('click.stop', () => this.prev())
-              .child(new Icon('chevron-left')),
-            h('a', 'calendar-next')
-              .on('click.stop', () => this.next())
-              .child(new Icon('chevron-right')),
-          ),
+    this.el = h('div', 'x-spreadsheet-calendar').children(
+      h('div', 'calendar-header').children(
+        this.headerLeftEl,
+        h('div', 'calendar-header-right').children(
+          h('a', 'calendar-prev')
+            .on('click.stop', () => this.prev())
+            .child(new Icon('chevron-left')),
+          h('a', 'calendar-next')
+            .on('click.stop', () => this.next())
+            .child(new Icon('chevron-right'))
+        )
+      ),
+      h('table', 'calendar-body').children(
+        h('thead', '').child(
+          h('tr', '').children(
+            ...(t('calendar.weeks') as string[]).map((week) => h('th', 'cell').child(week))
+          )
         ),
-        h('table', 'calendar-body').children(
-          h('thead', '').child(
-            h('tr', '').children(
-              ...(t('calendar.weeks') as string[]).map(week => h('th', 'cell').child(week)),
-            ),
-          ),
-          this.bodyEl,
-        ),
-      );
+        this.bodyEl
+      )
+    );
     this.selectChange = () => {};
   }
 
@@ -99,7 +98,9 @@ export default class Calendar {
 
   buildHeaderLeft(): void {
     const { value } = this;
-    this.headerLeftEl.html(`${(t('calendar.months') as string[])[value.getMonth()]} ${value.getFullYear()}`);
+    this.headerLeftEl.html(
+      `${(t('calendar.months') as string[])[value.getMonth()]} ${value.getFullYear()}`
+    );
   }
 
   buildBody(): void {
@@ -115,7 +116,7 @@ export default class Calendar {
             .on('click.stop', () => {
               this.selectChange(it1.d);
             })
-            .child(it1.d.getDate().toString()),
+            .child(it1.d.getDate().toString())
         );
       });
       return h('tr', '').children(...tds);

@@ -1,10 +1,11 @@
-import Item from './item';
+import type { Element } from '../element';
 import Icon from '../icon';
-import { Element } from '../element';
+import Item from './item';
 
 export default class IconItem extends Item {
   element(): Element {
-    return super.element()
+    return super
+      .element()
       .child(new Icon(this.tag))
       .on('click', () => this.change(this.tag));
   }

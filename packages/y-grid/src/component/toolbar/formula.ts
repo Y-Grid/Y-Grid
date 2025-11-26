@@ -1,6 +1,6 @@
-import DropdownItem from './dropdown-item';
+import type Dropdown from '../dropdown';
 import DropdownFormula from '../dropdown-formula';
-import Dropdown from '../dropdown';
+import DropdownItem from './dropdown-item';
 
 interface FormulaItem {
   key: string;

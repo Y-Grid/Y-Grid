@@ -1,6 +1,6 @@
-import DropdownItem from './dropdown-item';
+import type Dropdown from '../dropdown';
 import DropdownBorder from '../dropdown-border';
-import Dropdown from '../dropdown';
+import DropdownItem from './dropdown-item';
 
 export default class Border extends DropdownItem {
   constructor() {

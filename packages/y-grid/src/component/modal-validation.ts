@@ -1,11 +1,11 @@
-import Modal from './modal';
+import { cssPrefix } from '../config';
+import { t } from '../locale/locale';
+import Button from './button';
+import { h } from './element';
+import FormField from './form-field';
 import FormInput from './form-input';
 import FormSelect from './form-select';
-import FormField from './form-field';
-import Button from './button';
-import { t } from '../locale/locale';
-import { h } from './element';
-import { cssPrefix } from '../config';
+import Modal from './modal';
 
 const fieldLabelWidth = 100;
 
@@ -37,74 +37,71 @@ export default class ModalValidation extends Modal {
 
   constructor() {
     const mf = new FormField(
-      new FormSelect<string>('cell',
+      new FormSelect<string>(
+        'cell',
         ['cell'], // cell|row|column
         '100%',
-        it => t(`dataValidation.modeType.${it}`)),
+        (it) => t(`dataValidation.modeType.${it}`)
+      ),
       { required: true },
       `${t('dataValidation.range')}:`,
-      fieldLabelWidth,
+      fieldLabelWidth
     );
-    const rf = new FormField(
-      new FormInput('120px', 'E3 or E3:F12'),
-      { required: true, pattern: /^([A-Z]{1,2}[1-9]\d*)(:[A-Z]{1,2}[1-9]\d*)?$/ },
-    );
+    const rf = new FormField(new FormInput('120px', 'E3 or E3:F12'), {
+      required: true,
+      pattern: /^([A-Z]{1,2}[1-9]\d*)(:[A-Z]{1,2}[1-9]\d*)?$/,
+    });
     const cf = new FormField(
-      new FormSelect<string>('list',
+      new FormSelect<string>(
+        'list',
         ['list', 'number', 'date', 'phone', 'email'],
         '100%',
-        it => t(`dataValidation.type.${it}`),
-        it => this.criteriaSelected(it)),
+        (it) => t(`dataValidation.type.${it}`),
+        (it) => this.criteriaSelected(it)
+      ),
       { required: true },
       `${t('dataValidation.criteria')}:`,
-      fieldLabelWidth,
+      fieldLabelWidth
     );
 
     // operator
     const of = new FormField(
-      new FormSelect<string>('be',
+      new FormSelect<string>(
+        'be',
         ['be', 'nbe', 'eq', 'neq', 'lt', 'lte', 'gt', 'gte'],
         '160px',
-        it => t(`dataValidation.operator.${it}`),
-        it => this.criteriaOperatorSelected(it)),
-      { required: true },
+        (it) => t(`dataValidation.operator.${it}`),
+        (it) => this.criteriaOperatorSelected(it)
+      ),
+      { required: true }
     ).hide();
     // min, max
-    const minvf = new FormField(
-      new FormInput('70px', '10'),
-      { required: true },
-    ).hide();
-    const maxvf = new FormField(
-      new FormInput('70px', '100'),
-      { required: true, type: 'number' },
-    ).hide();
+    const minvf = new FormField(new FormInput('70px', '10'), { required: true }).hide();
+    const maxvf = new FormField(new FormInput('70px', '100'), {
+      required: true,
+      type: 'number',
+    }).hide();
     // value
-    const svf = new FormField(
-      new FormInput('120px', 'a,b,c'),
-      { required: true },
-    );
-    const vf = new FormField(
-      new FormInput('70px', '10'),
-      { required: true, type: 'number' },
-    ).hide();
+    const svf = new FormField(new FormInput('120px', 'a,b,c'), { required: true });
+    const vf = new FormField(new FormInput('70px', '10'), {
+      required: true,
+      type: 'number',
+    }).hide();
 
     super(t('contextmenu.validation'), [
-      h('div', `${cssPrefix}-form-fields`).children(
-        mf.el,
-        rf.el,
-      ),
+      h('div', `${cssPrefix}-form-fields`).children(mf.el, rf.el),
       h('div', `${cssPrefix}-form-fields`).children(
         cf.el,
         of.el,
         minvf.el,
         maxvf.el,
         vf.el,
-        svf.el,
+        svf.el
       ),
       h('div', `${cssPrefix}-buttons`).children(
         new Button('cancel').on('click', () => this.btnClick('cancel')),
         new Button('remove').on('click', () => this.btnClick('remove')),
-        new Button('save', 'primary').on('click', () => this.btnClick('save')),
+        new Button('save', 'primary').on('click', () => this.btnClick('save'))
       ),
     ]);
     this.mf = mf;
@@ -126,9 +123,7 @@ export default class ModalValidation extends Modal {
   }
 
   criteriaSelected(it: string): void {
-    const {
-      of, minvf, maxvf, vf, svf,
-    } = this;
+    const { of, minvf, maxvf, vf, svf } = this;
     if (it === 'date' || it === 'number') {
       of.show();
       minvf.rule.type = it;
@@ -159,9 +154,7 @@ export default class ModalValidation extends Modal {
 
   criteriaOperatorSelected(it: string): void {
     if (!it) return;
-    const {
-      minvf, maxvf, vf,
-    } = this;
+    const { minvf, maxvf, vf } = this;
     if (it === 'be' || it === 'nbe') {
       minvf.show();
       maxvf.show();
@@ -208,12 +201,12 @@ export default class ModalValidation extends Modal {
           value = this.vf.val() as string;
         }
       }
-      this.change('save',
-        mode,
-        ref,
-        {
-          type, operator, required: false, value,
-        });
+      this.change('save', mode, ref, {
+        type,
+        operator,
+        required: false,
+        value,
+      });
       this.hide();
     }
   }
@@ -221,15 +214,9 @@ export default class ModalValidation extends Modal {
   // validation: { mode, ref, validator }
   setValue(v: ValidationData | null): void {
     if (v) {
-      const {
-        mf, rf, cf, of, svf, vf, minvf, maxvf,
-      } = this;
-      const {
-        mode, ref, validator,
-      } = v;
-      const {
-        type, operator, value,
-      } = validator || { type: 'list' };
+      const { mf, rf, cf, of, svf, vf, minvf, maxvf } = this;
+      const { mode, ref, validator } = v;
+      const { type, operator, value } = validator || { type: 'list' };
       mf.val(mode || 'cell');
       rf.val(ref);
       cf.val(type);

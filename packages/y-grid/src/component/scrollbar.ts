@@ -1,5 +1,5 @@
-import { Element, h, ScrollPosition } from './element';
 import { cssPrefix } from '../config';
+import { type Element, type ScrollPosition, h } from './element';
 
 type MoveCallback = (scrollValue: number, evt: Event) => void;
 

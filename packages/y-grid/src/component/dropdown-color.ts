@@ -1,7 +1,7 @@
-import Dropdown from './dropdown';
-import Icon from './icon';
 import ColorPalette from './color-palette';
-import { Element } from './element';
+import Dropdown from './dropdown';
+import type { Element } from './element';
+import Icon from './icon';
 
 export default class DropdownColor extends Dropdown {
   constructor(iconName: string, color: string) {

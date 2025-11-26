@@ -1,6 +1,6 @@
+import type Dropdown from '../dropdown';
+import type { Element } from '../element';
 import Item from './item';
-import { Element } from '../element';
-import Dropdown from '../dropdown';
 
 export default class DropdownItem extends Item {
   dd!: Dropdown;

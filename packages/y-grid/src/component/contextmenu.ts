@@ -1,7 +1,7 @@
-import { Element, h } from './element';
-import { bindClickoutside, unbindClickoutside } from './event';
 import { cssPrefix } from '../config';
 import { tf } from '../locale/locale';
+import { type Element, h } from './element';
+import { bindClickoutside, unbindClickoutside } from './event';
 
 interface MenuItem {
   key: string;
@@ -47,14 +47,11 @@ function buildMenuItem(this: ContextMenu, item: MenuItem): Element {
       this.itemClick(item.key);
       this.hide();
     })
-    .children(
-      item.title!(),
-      h('div', 'label').child(item.label || ''),
-    );
+    .children(item.title!(), h('div', 'label').child(item.label || ''));
 }
 
 function buildMenu(this: ContextMenu): Element[] {
-  return menuItems.map(it => buildMenuItem.call(this, it));
+  return menuItems.map((it) => buildMenuItem.call(this, it));
 }
 
 export default class ContextMenu {
@@ -64,7 +61,7 @@ export default class ContextMenu {
   itemClick: (key: string) => void;
   isHide: boolean;
 
-  constructor(viewFn: () => ViewDimensions, isHide: boolean = false) {
+  constructor(viewFn: () => ViewDimensions, isHide = false) {
     this.menuItems = buildMenu.call(this);
     this.el = h('div', `${cssPrefix}-contextmenu`)
       .children(...this.menuItems)

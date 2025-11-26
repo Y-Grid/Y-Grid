@@ -16,9 +16,9 @@ interface TouchCallbacks {
 
 interface EventEmitter {
   readonly current: Map<string, EventCallback[]>;
-  on: (eventName: string, callback: EventCallback) => void | boolean;
-  once: (eventName: string, callback: EventCallback) => void | boolean;
-  fire: (eventName: string, args: unknown[]) => void | boolean;
+  on: (eventName: string, callback: EventCallback) => boolean | undefined;
+  once: (eventName: string, callback: EventCallback) => boolean | undefined;
+  fire: (eventName: string, args: unknown[]) => boolean | undefined;
   removeListener: (eventName: string, callback: EventCallback) => boolean;
   removeAllListeners: () => void;
 }
@@ -32,10 +32,10 @@ export function unbind(target: EventTarget, name: string, fn: EventListener): vo
 }
 
 export function unbindClickoutside(el: Element | ExtendedElement): void {
-  const element = el instanceof Element ? el.el as ExtendedElement : el as ExtendedElement;
+  const element = el instanceof Element ? (el.el as ExtendedElement) : (el as ExtendedElement);
   if (element.xclickoutside) {
     unbind(window.document.body, 'click', element.xclickoutside as EventListener);
-    delete element.xclickoutside;
+    element.xclickoutside = undefined;
   }
 }
 
@@ -123,51 +123,42 @@ export function bindTouch(target: EventTarget, { move, end }: TouchCallbacks): v
 export function createEventEmitter(): EventEmitter {
   const listeners = new Map<string, EventCallback[]>();
 
-  function on(eventName: string, callback: EventCallback): void | boolean {
-    const push = (): boolean => {
+  function on(eventName: string, callback: EventCallback): boolean | undefined {
+    if (listeners.has(eventName)) {
       const currentListener = listeners.get(eventName);
-      return (Array.isArray(currentListener)
-          && currentListener.push(callback) > 0)
-          || false;
-    };
-
-    const create = (): void => {
-      listeners.set(eventName, [].concat(callback as never));
-    };
-
-    return (listeners.has(eventName)
-        && push())
-        || create();
+      if (Array.isArray(currentListener)) {
+        currentListener.push(callback);
+        return true;
+      }
+      return false;
+    }
+    listeners.set(eventName, [callback]);
+    return undefined;
   }
 
-  function fire(eventName: string, args: unknown[]): void | boolean {
-    const exec = (): void => {
-      const currentListener = listeners.get(eventName);
-      if (currentListener) {
-        for (const callback of currentListener) callback.call(null, ...args);
-      }
-    };
-
-    return listeners.has(eventName)
-        && (exec(), true);
+  function fire(eventName: string, args: unknown[]): boolean | undefined {
+    if (!listeners.has(eventName)) return undefined;
+    const currentListener = listeners.get(eventName);
+    if (currentListener) {
+      for (const callback of currentListener) callback.call(null, ...args);
+    }
+    return true;
   }
 
   function removeListener(eventName: string, callback: EventCallback): boolean {
-    const remove = (): boolean => {
-      const currentListener = listeners.get(eventName);
-      if (!currentListener) return false;
-      const idx = currentListener.indexOf(callback);
-      return (idx >= 0)
-          && (currentListener.splice(idx, 1), true)
-          && (listeners.get(eventName)?.length === 0)
-          && listeners.delete(eventName);
-    };
-
-    return listeners.has(eventName)
-        && remove();
+    if (!listeners.has(eventName)) return false;
+    const currentListener = listeners.get(eventName);
+    if (!currentListener) return false;
+    const idx = currentListener.indexOf(callback);
+    if (idx < 0) return false;
+    currentListener.splice(idx, 1);
+    if (listeners.get(eventName)?.length === 0) {
+      listeners.delete(eventName);
+    }
+    return true;
   }
 
-  function once(eventName: string, callback: EventCallback): void | boolean {
+  function once(eventName: string, callback: EventCallback): boolean | undefined {
     const execCallback = (...args: unknown[]): void => {
       callback.call(null, ...args);
       removeListener(eventName, execCallback);

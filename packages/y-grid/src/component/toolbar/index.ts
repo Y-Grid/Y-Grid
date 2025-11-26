@@ -1,35 +1,35 @@
 /* global window */
 
 import Align from './align';
-import Valign from './valign';
 import Autofilter from './autofilter';
 import Bold from './bold';
-import Italic from './italic';
-import Strike from './strike';
-import Underline from './underline';
 import Border from './border';
 import Clearformat from './clearformat';
-import Paintformat from './paintformat';
-import TextColor from './text-color';
 import FillColor from './fill-color';
-import FontSize from './font-size';
 import Font from './font';
+import FontSize from './font-size';
 import Format from './format';
 import Formula from './formula';
 import Freeze from './freeze';
-import Merge from './merge';
-import Redo from './redo';
-import Undo from './undo';
-import Print from './print';
-import Textwrap from './textwrap';
-import More, { DropdownMore } from './more';
+import Italic from './italic';
 import Item from './item';
+import Merge from './merge';
+import More, { type DropdownMore } from './more';
+import Paintformat from './paintformat';
+import Print from './print';
+import Redo from './redo';
+import Strike from './strike';
+import TextColor from './text-color';
+import Textwrap from './textwrap';
 import ToggleItem from './toggle-item';
+import Underline from './underline';
+import Undo from './undo';
+import Valign from './valign';
 
-import { h, Element } from '../element';
 import { cssPrefix } from '../../config';
+import type DataProxy from '../../core/data-proxy';
+import { Element, h } from '../element';
 import { bind } from '../event';
-import DataProxy from '../../core/data-proxy';
 
 type ToolbarItem = Item | Element;
 type ToolbarRow = ToolbarItem[] | Element;
@@ -53,21 +53,25 @@ function initBtns2(this: Toolbar): void {
         if (item instanceof Item) {
           const rect = item.el.box();
           const { marginLeft, marginRight } = item.el.computedStyle();
-          this.btns2.push([item.el, rect.width + parseInt(marginLeft, 10) + parseInt(marginRight, 10)]);
+          this.btns2.push([
+            item.el,
+            rect.width + Number.parseInt(marginLeft, 10) + Number.parseInt(marginRight, 10),
+          ]);
         }
       });
     } else if (it instanceof Element) {
       const rect = it.box();
       const { marginLeft, marginRight } = it.computedStyle();
-      this.btns2.push([it, rect.width + parseInt(marginLeft, 10) + parseInt(marginRight, 10)]);
+      this.btns2.push([
+        it,
+        rect.width + Number.parseInt(marginLeft, 10) + Number.parseInt(marginRight, 10),
+      ]);
     }
   });
 }
 
 function moreResize(this: Toolbar): void {
-  const {
-    el, btns, moreEl, btns2,
-  } = this;
+  const { el, btns, moreEl, btns2 } = this;
   const dd = moreEl.dd as DropdownMore;
   const { moreBtns, contentEl } = dd;
   el.css('width', `${this.widthFn()}px`);
@@ -160,46 +164,41 @@ export default class Toolbar {
     const style = data.defaultStyle();
     this.items = [
       [
-        this.undoEl = new Undo(),
-        this.redoEl = new Redo(),
+        (this.undoEl = new Undo()),
+        (this.redoEl = new Redo()),
         new Print(),
-        this.paintformatEl = new Paintformat(),
-        this.clearformatEl = new Clearformat(),
+        (this.paintformatEl = new Paintformat()),
+        (this.clearformatEl = new Clearformat()),
+      ],
+      buildDivider(),
+      [(this.formatEl = new Format())],
+      buildDivider(),
+      [(this.fontEl = new Font()), (this.fontSizeEl = new FontSize())],
+      buildDivider(),
+      [
+        (this.boldEl = new Bold()),
+        (this.italicEl = new Italic()),
+        (this.underlineEl = new Underline()),
+        (this.strikeEl = new Strike()),
+        (this.textColorEl = new TextColor(style.color)),
       ],
       buildDivider(),
       [
-        this.formatEl = new Format(),
+        (this.fillColorEl = new FillColor(style.bgcolor)),
+        (this.borderEl = new Border()),
+        (this.mergeEl = new Merge()),
       ],
       buildDivider(),
       [
-        this.fontEl = new Font(),
-        this.fontSizeEl = new FontSize(),
+        (this.alignEl = new Align(style.align)),
+        (this.valignEl = new Valign(style.valign)),
+        (this.textwrapEl = new Textwrap()),
       ],
       buildDivider(),
       [
-        this.boldEl = new Bold(),
-        this.italicEl = new Italic(),
-        this.underlineEl = new Underline(),
-        this.strikeEl = new Strike(),
-        this.textColorEl = new TextColor(style.color),
-      ],
-      buildDivider(),
-      [
-        this.fillColorEl = new FillColor(style.bgcolor),
-        this.borderEl = new Border(),
-        this.mergeEl = new Merge(),
-      ],
-      buildDivider(),
-      [
-        this.alignEl = new Align(style.align),
-        this.valignEl = new Valign(style.valign),
-        this.textwrapEl = new Textwrap(),
-      ],
-      buildDivider(),
-      [
-        this.freezeEl = new Freeze(),
-        this.autofilterEl = new Autofilter(),
-        this.formulaEl = new Formula(),
+        (this.freezeEl = new Freeze()),
+        (this.autofilterEl = new Autofilter()),
+        (this.formulaEl = new Formula()),
       ],
     ];
 
@@ -217,7 +216,7 @@ export default class Toolbar {
       this.items.push(btns);
     }
 
-    this.items.push([this.moreEl = new More()]);
+    this.items.push([(this.moreEl = new More())]);
 
     this.el = h('div', `${cssPrefix}-toolbar`);
     this.btns = h('div', `${cssPrefix}-toolbar-btns`);

@@ -1,6 +1,6 @@
-import { Element, h } from './element';
-import Suggest, { SuggestItem } from './suggest';
 import { cssPrefix } from '../config';
+import { type Element, h } from './element';
+import Suggest, { type SuggestItem } from './suggest';
 
 type GetTitleFn<T> = (item: T) => string;
 type ChangeFn<T> = (item: T) => void;
@@ -25,9 +25,9 @@ export default class FormSelect<T = string> {
     this.vchange = () => {};
     this.el = h('div', `${cssPrefix}-form-select`);
     this.suggest = new Suggest(
-      items.map(it => ({ key: String(it), title: this.getTitle(it) })),
+      items.map((it) => ({ key: String(it), title: this.getTitle(it) })),
       (it: SuggestItem) => {
-        const typedKey = items.find(item => String(item) === it.key) as T;
+        const typedKey = items.find((item) => String(item) === it.key) as T;
         this.itemClick(typedKey);
         change(typedKey);
         this.vchange(typedKey);
@@ -35,10 +35,7 @@ export default class FormSelect<T = string> {
       width
     );
     this.itemEl = h('div', 'input-text').html(this.getTitle(key));
-    this.el.children(
-      this.itemEl,
-      this.suggest.el,
-    ).on('click', () => this.show());
+    this.el.children(this.itemEl, this.suggest.el).on('click', () => this.show());
   }
 
   show(): void {

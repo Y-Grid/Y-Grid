@@ -1,5 +1,5 @@
-import { Element, h } from './element';
 import { cssPrefix } from '../config';
+import { type Element, h } from './element';
 
 export default class FormInput {
   vchange: (evt?: Event) => void;
@@ -9,8 +9,9 @@ export default class FormInput {
   constructor(width: string, hint: string) {
     this.vchange = () => {};
     this.el = h('div', `${cssPrefix}-form-input`);
-    this.input = h('input', '').css('width', width)
-      .on('input', evt => this.vchange(evt))
+    this.input = h('input', '')
+      .css('width', width)
+      .on('input', (evt) => this.vchange(evt))
       .attr('placeholder', hint);
     this.el.child(this.input);
   }

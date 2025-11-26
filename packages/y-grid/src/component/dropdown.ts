@@ -1,6 +1,6 @@
+import { cssPrefix } from '../config';
 import { Element, h } from './element';
 import { bindClickoutside, unbindClickoutside } from './event';
-import { cssPrefix } from '../config';
 
 type ChangeCallback = (...args: unknown[]) => void;
 
@@ -27,25 +27,27 @@ export default class Dropdown extends Element {
     } else if (showArrow) {
       (this.title as Element).addClass('arrow-left');
     }
-    this.contentEl = h('div', `${cssPrefix}-dropdown-content`)
-      .css('width', width)
-      .hide();
+    this.contentEl = h('div', `${cssPrefix}-dropdown-content`).css('width', width).hide();
 
     this.setContentChildren(...children);
 
     this.headerEl = h('div', `${cssPrefix}-dropdown-header`);
-    this.headerEl.on('click', () => {
-      if (this.contentEl.css('display') !== 'block') {
-        this.show();
-      } else {
-        this.hide();
-      }
-    }).children(
-      this.title as Element,
-      showArrow ? h('div', `${cssPrefix}-icon arrow-right`).child(
-        h('div', `${cssPrefix}-icon-img arrow-down`),
-      ) : '',
-    );
+    this.headerEl
+      .on('click', () => {
+        if (this.contentEl.css('display') !== 'block') {
+          this.show();
+        } else {
+          this.hide();
+        }
+      })
+      .children(
+        this.title as Element,
+        showArrow
+          ? h('div', `${cssPrefix}-icon arrow-right`).child(
+              h('div', `${cssPrefix}-icon-img arrow-down`)
+            )
+          : ''
+      );
     this.children(this.headerEl, this.contentEl);
   }
 

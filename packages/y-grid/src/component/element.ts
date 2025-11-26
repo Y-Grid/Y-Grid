@@ -16,7 +16,7 @@ class Element {
   el: HTMLElement;
   private _data: Record<string, unknown>;
 
-  constructor(tag: string | HTMLElement, className: string = '') {
+  constructor(tag: string | HTMLElement, className = '') {
     if (typeof tag === 'string') {
       this.el = document.createElement(tag);
       this.el.className = className;
@@ -73,9 +73,7 @@ class Element {
       });
       return this;
     }
-    const {
-      offsetTop, offsetLeft, offsetHeight, offsetWidth,
-    } = this.el;
+    const { offsetTop, offsetLeft, offsetHeight, offsetWidth } = this.el;
     return {
       top: offsetTop,
       left: offsetLeft,
@@ -113,7 +111,7 @@ class Element {
     if (eles.length === 0) {
       return this.el.childNodes;
     }
-    eles.forEach(ele => this.child(ele));
+    eles.forEach((ele) => this.child(ele));
     return this;
   }
 
@@ -164,7 +162,7 @@ class Element {
     return this;
   }
 
-  toggle(cls: string = 'active'): boolean {
+  toggle(cls = 'active'): boolean {
     return this.toggleClass(cls);
   }
 
@@ -172,18 +170,18 @@ class Element {
     return this.el.classList.toggle(name);
   }
 
-  active(flag: boolean = true, cls: string = 'active'): this {
+  active(flag = true, cls = 'active'): this {
     if (flag) this.addClass(cls);
     else this.removeClass(cls);
     return this;
   }
 
-  checked(flag: boolean = true): this {
+  checked(flag = true): this {
     this.active(flag, 'checked');
     return this;
   }
 
-  disabled(flag: boolean = true): this {
+  disabled(flag = true): this {
     if (flag) this.addClass('disabled');
     else this.removeClass('disabled');
     return this;
@@ -243,7 +241,7 @@ class Element {
   }
 
   cssRemoveKeys(...keys: string[]): this {
-    keys.forEach(k => this.el.style.removeProperty(k));
+    keys.forEach((k) => this.el.style.removeProperty(k));
     return this;
   }
 
@@ -284,11 +282,8 @@ class Element {
 
 function h(tag: string, className?: string): Element;
 function h(el: HTMLElement): Element;
-function h(tag: string | HTMLElement, className: string = ''): Element {
+function h(tag: string | HTMLElement, className = ''): Element {
   return new Element(tag, className);
 }
 
-export {
-  Element,
-  h,
-};
+export { Element, h };

@@ -2,7 +2,7 @@ import Dropdown from '../dropdown';
 import DropdownItem from './dropdown-item';
 
 import { cssPrefix } from '../../config';
-import { h, Element } from '../element';
+import { type Element, h } from '../element';
 import Icon from '../icon';
 
 export class DropdownMore extends Dropdown {
