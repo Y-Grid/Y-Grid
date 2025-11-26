@@ -1,5 +1,4 @@
-import assert from 'assert';
-import { describe, it } from 'mocha';
+import { describe, it, assert } from 'vitest';
 import { CellRange } from '../../src/core/cell_range';
 
 describe('CellRange', () => {

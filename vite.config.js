@@ -2,6 +2,10 @@ import { defineConfig } from 'vite';
 import { resolve } from 'path';
 
 export default defineConfig({
+  test: {
+    globals: true,
+    include: ['test/**/*_test.js'],
+  },
   build: {
     lib: {
       entry: resolve(import.meta.dirname, 'src/index.js'),
