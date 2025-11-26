@@ -349,3 +349,10 @@ export { YGrid, ygrid };
 
 // CSV Parser exports
 export * as csvParser from './core/csv-parser';
+
+// Rendering Pipeline exports (Phase 2)
+export { Viewport, type ViewportRange, type ViewportConfig } from './core/viewport';
+export { DirtyTracker, type DirtyType, type DirtyRegion, type DirtyState } from './core/dirty-tracker';
+export { RenderScheduler, type RenderPriority, type RenderTask, throttle, debounce } from './core/render-scheduler';
+export { LayeredCanvas, Layer, type LayerType, type LayerConfig } from './canvas/layered-canvas';
+export { OptimizedTable } from './component/optimized-table';

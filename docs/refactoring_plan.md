@@ -33,11 +33,11 @@ Completed:
 
 ---
 
-## Phase 2: Rendering Pipeline (HIGH PRIORITY)
+## Phase 2: Rendering Pipeline (COMPLETE)
 
 **Goal**: Only render what's visible, only redraw what changed
 
-### 2.1 Virtual Viewport
+### 2.1 Virtual Viewport ✅
 Calculate and render only visible cells:
 
 ```
@@ -45,13 +45,15 @@ visibleRows = ceil(viewportHeight / avgRowHeight) + buffer
 visibleCols = ceil(viewportWidth / avgColWidth) + buffer
 ```
 
-Tasks:
-- [ ] Create `Viewport` class to manage visible range
-- [ ] Calculate visible row/col indices from scroll position
-- [ ] Add buffer rows/cols for smooth scrolling (e.g., 5 extra each direction)
-- [ ] Update `Table.render()` to use viewport, not full data range
+Implementation: `src/core/viewport.ts`
 
-### 2.2 Dirty Region Tracking
+Tasks:
+- [x] Create `Viewport` class to manage visible range
+- [x] Calculate visible row/col indices from scroll position
+- [x] Add buffer rows/cols for smooth scrolling (e.g., 5 extra each direction)
+- [x] Update `Table.render()` to use viewport, not full data range
+
+### 2.2 Dirty Region Tracking ✅
 Don't redraw everything on every change:
 
 ```typescript
@@ -61,13 +63,15 @@ interface DirtyRegion {
 }
 ```
 
-Tasks:
-- [ ] Create `DirtyTracker` class
-- [ ] Mark regions dirty on: data change, style change, selection change, scroll
-- [ ] Implement partial canvas redraw (clip to dirty region)
-- [ ] Clear dirty flags after render
+Implementation: `src/core/dirty-tracker.ts`
 
-### 2.3 Layered Canvas
+Tasks:
+- [x] Create `DirtyTracker` class
+- [x] Mark regions dirty on: data change, style change, selection change, scroll
+- [x] Implement partial canvas redraw (clip to dirty region)
+- [x] Clear dirty flags after render
+
+### 2.3 Layered Canvas ✅
 Separate static content from dynamic overlays:
 
 ```
@@ -76,14 +80,16 @@ Layer 2 (middle): Cell content, text
 Layer 3 (top): Selection, highlights, cursor
 ```
 
-Tasks:
-- [ ] Create multi-canvas stack in `Table`
-- [ ] Render grid/backgrounds to base layer (rarely changes)
-- [ ] Render cell content to content layer
-- [ ] Render selection to overlay layer (changes often, cheap to redraw)
-- [ ] Only redraw affected layers
+Implementation: `src/canvas/layered-canvas.ts`
 
-### 2.4 RequestAnimationFrame Batching
+Tasks:
+- [x] Create multi-canvas stack in `Table`
+- [x] Render grid/backgrounds to base layer (rarely changes)
+- [x] Render cell content to content layer
+- [x] Render selection to overlay layer (changes often, cheap to redraw)
+- [x] Only redraw affected layers
+
+### 2.4 RequestAnimationFrame Batching ✅
 Don't render on every event:
 
 ```typescript
@@ -101,11 +107,17 @@ class RenderScheduler {
 }
 ```
 
+Implementation: `src/core/render-scheduler.ts`
+
 Tasks:
-- [ ] Create `RenderScheduler`
-- [ ] Queue all render requests through scheduler
-- [ ] Batch multiple changes into single frame
-- [ ] Implement render priority (selection > content > grid)
+- [x] Create `RenderScheduler`
+- [x] Queue all render requests through scheduler
+- [x] Batch multiple changes into single frame
+- [x] Implement render priority (selection > content > grid)
+
+### 2.5 Integration ✅
+
+The new rendering pipeline is available via `OptimizedTable` (`src/component/optimized-table.ts`) which integrates all components. The original `Table` component remains unchanged for backward compatibility.
 
 ---
 
@@ -329,13 +341,13 @@ Tasks:
 
 | Phase | Priority | Impact | Effort |
 |-------|----------|--------|--------|
-| 2. Rendering Pipeline | **CRITICAL** | Very High | Medium |
 | 3. Data Layer | **CRITICAL** | Very High | High |
 | 4. Scroll Performance | HIGH | High | Medium |
 | 5. Caching | MEDIUM | Medium | Low |
 | 6. Formula Engine | LOW | Low | Medium |
 | 8. Renderer Abstraction | FUTURE | Medium | High |
 | 1. Foundation | ~~COMPLETE~~ | - | - |
+| 2. Rendering Pipeline | ~~COMPLETE~~ | - | - |
 | 7. TypeScript | ~~COMPLETE~~ | - | - |
 
 ---

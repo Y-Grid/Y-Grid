@@ -110,24 +110,6 @@ interface EventEmitter {
   fire: (eventName: string, args: unknown[]) => void;
 }
 
-/**
- * @desc throttle fn
- * @param func function
- * @param wait Delay in milliseconds
- */
-function throttle(func: (...args: unknown[]) => void, wait: number): (...args: unknown[]) => void {
-  let timeout: ReturnType<typeof setTimeout> | null;
-  return (...arg: unknown[]) => {
-    const args = arg;
-    if (!timeout) {
-      timeout = setTimeout(() => {
-        timeout = null;
-        func.apply(null, args);
-      }, wait);
-    }
-  };
-}
-
 function scrollbarMove(this: Sheet): void {
   const { data, verticalScrollbar, horizontalScrollbar } = this;
   const { l, t, left, top, width, height } = data.getSelectedRect();
@@ -303,10 +285,13 @@ function overlayerMousescroll(this: Sheet, evt: WheelEvent): void {
   const tempY = Math.abs(deltaY);
   const tempX = Math.abs(deltaX);
   const temp = Math.max(tempY, tempX);
-  if (/Firefox/i.test(window.navigator.userAgent))
-    throttle(() => moveY((evt as unknown as { detail: number }).detail), 50);
-  if (temp === tempX) throttle(() => moveX(deltaX), 50);
-  if (temp === tempY) throttle(() => moveY(deltaY), 50);
+  if (/Firefox/i.test(window.navigator.userAgent)) {
+    moveY((evt as unknown as { detail: number }).detail);
+  } else if (temp === tempX) {
+    moveX(deltaX);
+  } else if (temp === tempY) {
+    moveY(deltaY);
+  }
 }
 
 function overlayerTouch(this: Sheet, direction: string, distance: number): void {
