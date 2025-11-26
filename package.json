@@ -8,16 +8,16 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "npm run dev -w y-grid",
-    "build": "npm run build -w y-grid",
-    "preview": "npm run preview -w y-grid",
-    "lint": "npm run lint -w y-grid",
-    "lint:fix": "npm run lint:fix -w y-grid",
-    "format": "npm run format -w y-grid",
-    "test": "npm run test -w y-grid",
-    "test:watch": "npm run test:watch -w y-grid",
-    "coverage": "npm run coverage -w y-grid",
-    "typecheck": "npm run typecheck -w y-grid"
+    "dev": "npm run dev -w @y-grid/y-grid",
+    "build": "npm run build -w @y-grid/y-grid",
+    "preview": "npm run preview -w @y-grid/y-grid",
+    "lint": "npm run lint -w @y-grid/y-grid",
+    "lint:fix": "npm run lint:fix -w @y-grid/y-grid",
+    "format": "npm run format -w @y-grid/y-grid",
+    "test": "npm run test -w @y-grid/y-grid",
+    "test:watch": "npm run test:watch -w @y-grid/y-grid",
+    "coverage": "npm run coverage -w @y-grid/y-grid",
+    "typecheck": "npm run typecheck -w @y-grid/y-grid"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.0",
@@ -30,10 +30,10 @@
     "vite": "^5.4.0",
     "vitest": "^4.0.14"
   },
-  "author": "myliang <liangyuliang0335@gmail.com>",
+  "author": "Yumin <mail@yumin.io>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/user/y-grid.git"
+    "url": "https://github.com/y-grid/y-grid.git"
   }
 }

@@ -27,12 +27,12 @@ jobs:
         run: npm ci
 
       - name: Build
-        run: npm run build -w y-grid
+        run: npm run build -w @y-grid/y-grid
 
       - name: Run tests
-        run: npm run test -w y-grid
+        run: npm run test -w @y-grid/y-grid
 
       - name: Publish to npm
-        run: npm publish -w y-grid --provenance --access public
+        run: npm publish -w @y-grid/y-grid --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

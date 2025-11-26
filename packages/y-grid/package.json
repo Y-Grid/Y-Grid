@@ -1,5 +1,5 @@
 {
-  "name": "y-grid",
+  "name": "@y-grid/y-grid",
   "version": "1.0.0",
   "type": "module",
   "description": "A high performance web grid component",
