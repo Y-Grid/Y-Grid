@@ -1,26 +1,30 @@
-import { defineConfig } from 'vite';
-import { resolve } from 'path';
+import { defineConfig } from "vite";
+import { resolve } from "path";
 
 export default defineConfig({
   test: {
     globals: true,
-    include: ['test/**/*_test.js'],
+    include: ["test/**/*_test.js"],
+    coverage: {
+      provider: "v8",
+      include: ["src/**/*.js"],
+    },
   },
   build: {
     lib: {
-      entry: resolve(import.meta.dirname, 'src/index.js'),
-      name: 'y_grid',
-      fileName: (format) => format === 'umd' ? 'y-grid.umd.js' : `y-grid.${format}.js`,
-      formats: ['es', 'umd'],
+      entry: resolve(import.meta.dirname, "src/index.js"),
+      name: "y_grid",
+      fileName: "y-grid",
+      formats: ["es"],
     },
-    outDir: 'dist',
+    outDir: "dist",
     sourcemap: true,
     rollupOptions: {
       output: {
-        exports: 'named',
+        exports: "named",
         assetFileNames: (assetInfo) => {
-          if (assetInfo.names?.[0] === 'style.css') return 'y-grid.css';
-          return assetInfo.names?.[0] || 'assets/[name]-[hash][extname]';
+          if (assetInfo.names?.[0] === "style.css") return "y-grid.css";
+          return assetInfo.names?.[0] || "assets/[name]-[hash][extname]";
         },
       },
     },

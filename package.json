@@ -1,10 +1,11 @@
 {
   "name": "y-grid",
   "version": "1.1.8",
+  "type": "module",
   "description": "a high performance web grid / spreadsheet component",
   "types": "src/index.d.ts",
-  "main": "dist/y-grid.umd.js",
-  "module": "dist/y-grid.es.js",
+  "main": "dist/y-grid.js",
+  "module": "dist/y-grid.js",
   "files": [
     "assets",
     "dist",
@@ -34,6 +35,7 @@
   ],
   "devDependencies": {
     "@biomejs/biome": "^1.9.0",
+    "@vitest/coverage-v8": "^4.0.14",
     "less": "^3.8.1",
     "vite": "^5.4.0",
     "vitest": "^4.0.14"
