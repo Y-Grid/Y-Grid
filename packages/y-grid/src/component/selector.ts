@@ -345,7 +345,7 @@ export default class Selector {
     this.resetOffset();
   }
 
-  set(ri: number, ci: number, indexesUpdated: boolean = true): void {
+  set(ri: number, ci: number, indexesUpdated = true): void {
     const { data } = this;
     const cellRange = data.calSelectedRangeByStart(ri, ci);
     const { sri, sci } = cellRange;
@@ -363,7 +363,7 @@ export default class Selector {
     this.el.show();
   }
 
-  setEnd(ri: number, ci: number, moving: boolean = true): void {
+  setEnd(ri: number, ci: number, moving = true): void {
     const { data, lastri, lastci } = this;
     if (moving) {
       if (ri === lastri && ci === lastci) return;
@@ -381,9 +381,10 @@ export default class Selector {
 
   showAutofill(ri: number, ci: number): void {
     if (ri === -1 && ci === -1) return;
+    if (!this.range) return;
     const {
       sri, sci, eri, eci,
-    } = this.range!;
+    } = this.range;
     const [nri, nci] = [ri, ci];
     const srn = sri - ri;
     const scn = sci - ci;
@@ -420,22 +421,22 @@ export default class Selector {
   }
 
   hideAutofill(): void {
-    (['br', 'l', 't', 'tl'] as const).forEach((property) => {
+    for (const property of ['br', 'l', 't', 'tl'] as const) {
       this[property].hideAutofill();
-    });
+    }
   }
 
   showClipboard(): void {
     const coffset = this.data.getClipboardRect();
     setAllClipboardOffset.call(this, coffset);
-    (['br', 'l', 't', 'tl'] as const).forEach((property) => {
+    for (const property of ['br', 'l', 't', 'tl'] as const) {
       this[property].showClipboard();
-    });
+    }
   }
 
   hideClipboard(): void {
-    (['br', 'l', 't', 'tl'] as const).forEach((property) => {
+    for (const property of ['br', 'l', 't', 'tl'] as const) {
       this[property].hideClipboard();
-    });
+    }
   }
 }
