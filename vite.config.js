@@ -18,7 +18,7 @@ export default defineConfig({
       formats: ["es"],
     },
     outDir: "dist",
-    sourcemap: true,
+    sourcemap: false,
     rollupOptions: {
       output: {
         exports: "named",
