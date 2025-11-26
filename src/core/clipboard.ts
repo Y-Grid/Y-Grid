@@ -1,34 +1,36 @@
-export default class Clipboard {
-  constructor() {
-    this.range = null; // CellRange
-    this.state = 'clear';
-  }
+import type { CellRange } from './cell-range';
 
-  copy(cellRange) {
+type ClipboardState = 'clear' | 'copy' | 'cut';
+
+export default class Clipboard {
+  range: CellRange | null = null;
+  state: ClipboardState = 'clear';
+
+  copy(cellRange: CellRange): this {
     this.range = cellRange;
     this.state = 'copy';
     return this;
   }
 
-  cut(cellRange) {
+  cut(cellRange: CellRange): this {
     this.range = cellRange;
     this.state = 'cut';
     return this;
   }
 
-  isCopy() {
+  isCopy(): boolean {
     return this.state === 'copy';
   }
 
-  isCut() {
+  isCut(): boolean {
     return this.state === 'cut';
   }
 
-  isClear() {
+  isClear(): boolean {
     return this.state === 'clear';
   }
 
-  clear() {
+  clear(): void {
     this.range = null;
     this.state = 'clear';
   }
