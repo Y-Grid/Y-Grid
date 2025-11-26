@@ -1,6 +1,6 @@
 {
   "name": "y-grid",
-  "version": "1.2.0",
+  "version": "0.1.0",
   "type": "module",
   "description": "a high performance web grid / spreadsheet component",
   "types": "src/index.d.ts",
