@@ -18,7 +18,7 @@
     "url": "https://github.com/myliang/x-spreadsheet.git"
   },
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently \"vite build --watch\" \"serve -l 8080\" \"sleep 1 && open http://localhost:8080/demo/index.html\"",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "biome check src",
@@ -26,7 +26,8 @@
     "format": "biome format --write src",
     "test": "vitest run",
     "test:watch": "vitest",
-    "coverage": "vitest run --coverage"
+    "coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [
     "javascript",
@@ -35,8 +36,12 @@
   ],
   "devDependencies": {
     "@biomejs/biome": "^1.9.0",
+    "@types/node": "^22.19.1",
     "@vitest/coverage-v8": "^4.0.14",
+    "concurrently": "^9.2.1",
     "less": "^3.8.1",
+    "serve": "^14.2.5",
+    "typescript": "^5.9.3",
     "vite": "^5.4.0",
     "vitest": "^4.0.14"
   }

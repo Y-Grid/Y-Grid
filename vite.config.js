@@ -4,10 +4,10 @@ import { resolve } from "path";
 export default defineConfig({
   test: {
     globals: true,
-    include: ["test/**/*_test.js"],
+    include: ["test/**/*_test.{js,ts}"],
     coverage: {
       provider: "v8",
-      include: ["src/**/*.js"],
+      include: ["src/**/*.{js,ts}"],
     },
   },
   build: {
@@ -34,6 +34,10 @@ export default defineConfig({
     },
   },
   server: {
+    port: 8080,
+    open: "/demo/index.html",
+  },
+  preview: {
     port: 8080,
     open: "/demo/index.html",
   },

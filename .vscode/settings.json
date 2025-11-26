@@ -1,4 +1,5 @@
 {
   "git.openDiffOnClick": true,
-  "git.showIgnoredPathsWarning": false
+  "git.showIgnoredPathsWarning": false,
+  "makefile.configureOnOpen": false
 }

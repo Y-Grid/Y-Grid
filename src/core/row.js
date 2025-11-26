@@ -1,5 +1,5 @@
-import helper from './helper';
-import { expr2expr } from './alphabet';
+import helper from "./helper";
+import { expr2expr } from "./alphabet";
 
 class Rows {
   constructor({ len, height }) {
@@ -12,7 +12,7 @@ class Rows {
   getHeight(ri) {
     if (this.isHide(ri)) return 0;
     const row = this.get(ri);
-    if (row && row.height) {
+    if (row?.height) {
       return row.height;
     }
     return this.height;
@@ -35,7 +35,7 @@ class Rows {
 
   isHide(ri) {
     const row = this.get(ri);
-    return row && row.hide;
+    return row?.hide;
   }
 
   setHide(ri, v) {
@@ -51,7 +51,7 @@ class Rows {
 
   sumHeight(min, max, exceptSet) {
     return helper.rangeSum(min, max, (i) => {
-      if (exceptSet && exceptSet.has(i)) return 0;
+      if (exceptSet?.has(i)) return 0;
       return this.getHeight(i);
     });
   }
@@ -71,7 +71,11 @@ class Rows {
 
   getCell(ri, ci) {
     const row = this.get(ri);
-    if (row !== undefined && row.cells !== undefined && row.cells[ci] !== undefined) {
+    if (
+      row !== undefined &&
+      row.cells !== undefined &&
+      row.cells[ci] !== undefined
+    ) {
       return row.cells[ci];
     }
     return null;
@@ -79,7 +83,7 @@ class Rows {
 
   getCellMerge(ri, ci) {
     const cell = this.getCell(ri, ci);
-    if (cell && cell.merge) return cell.merge;
+    if (cell?.merge) return cell.merge;
     return [0, 0];
   }
 
@@ -90,14 +94,14 @@ class Rows {
   }
 
   // what: all | text | format
-  setCell(ri, ci, cell, what = 'all') {
+  setCell(ri, ci, cell, what = "all") {
     const row = this.getOrNew(ri);
-    if (what === 'all') {
+    if (what === "all") {
       row.cells[ci] = cell;
-    } else if (what === 'text') {
+    } else if (what === "text") {
       row.cells[ci] = row.cells[ci] || {};
       row.cells[ci].text = cell.text;
-    } else if (what === 'format') {
+    } else if (what === "format") {
       row.cells[ci] = row.cells[ci] || {};
       row.cells[ci].style = cell.style;
       if (cell.merge) row.cells[ci].merge = cell.merge;
@@ -111,9 +115,7 @@ class Rows {
 
   // what: all | format | text
   copyPaste(srcCellRange, dstCellRange, what, autofill = false, cb = () => {}) {
-    const {
-      sri, sci, eri, eci,
-    } = srcCellRange;
+    const { sri, sci, eri, eci } = srcCellRange;
     const dsri = dstCellRange.sri;
     const dsci = dstCellRange.sci;
     const deri = dstCellRange.eri;
@@ -131,7 +133,7 @@ class Rows {
     for (let i = sri; i <= eri; i += 1) {
       if (this._[i]) {
         for (let j = sci; j <= eci; j += 1) {
-          if (this._[i].cells && this._[i].cells[j]) {
+          if (this._[i].cells?.[j]) {
             for (let ii = dsri; ii <= deri; ii += rn) {
               for (let jj = dsci; jj <= deci; jj += cn) {
                 const nri = ii + (i - sri);
@@ -140,11 +142,11 @@ class Rows {
                 // ncell.text
                 if (autofill && ncell && ncell.text && ncell.text.length > 0) {
                   const { text } = ncell;
-                  let n = (jj - dsci) + (ii - dsri) + 2;
+                  let n = jj - dsci + (ii - dsri) + 2;
                   if (!isAdd) {
                     n -= dn + 1;
                   }
-                  if (text[0] === '=') {
+                  if (text[0] === "=") {
                     ncell.text = text.replace(/[a-zA-Z]{1,3}\d+/g, (word) => {
                       let [xn, yn] = [0, 0];
                       if (sri === dsri) {
@@ -156,9 +158,11 @@ class Rows {
                       if (/^\d+$/.test(word)) return word;
                       return expr2expr(word, xn, yn);
                     });
-                  } else if ((rn <= 1 && cn > 1 && (dsri > eri || deri < sri))
-                    || (cn <= 1 && rn > 1 && (dsci > eci || deci < sci))
-                    || (rn <= 1 && cn <= 1)) {
+                  } else if (
+                    (rn <= 1 && cn > 1 && (dsri > eri || deri < sri)) ||
+                    (cn <= 1 && rn > 1 && (dsci > eci || deci < sci)) ||
+                    (rn <= 1 && cn <= 1)
+                  ) {
                     const result = /[\\.\d]+$/.exec(text);
                     // console.log('result:', result);
                     if (result !== null) {
@@ -181,8 +185,8 @@ class Rows {
     const ncellmm = {};
     this.each((ri) => {
       this.eachCells(ri, (ci) => {
-        let nri = parseInt(ri, 10);
-        let nci = parseInt(ci, 10);
+        let nri = Number.parseInt(ri, 10);
+        let nci = Number.parseInt(ci, 10);
         if (srcCellRange.includes(ri, ci)) {
           nri = dstCellRange.sri + (nri - srcCellRange.sri);
           nci = dstCellRange.sci + (nci - srcCellRange.sci);
@@ -210,12 +214,14 @@ class Rows {
   insert(sri, n = 1) {
     const ndata = {};
     this.each((ri, row) => {
-      let nri = parseInt(ri, 10);
+      let nri = Number.parseInt(ri, 10);
       if (nri >= sri) {
         nri += n;
         this.eachCells(ri, (ci, cell) => {
-          if (cell.text && cell.text[0] === '=') {
-            cell.text = cell.text.replace(/[a-zA-Z]{1,3}\d+/g, word => expr2expr(word, 0, n, (x, y) => y >= sri));
+          if (cell.text && cell.text[0] === "=") {
+            cell.text = cell.text.replace(/[a-zA-Z]{1,3}\d+/g, (word) =>
+              expr2expr(word, 0, n, (x, y) => y >= sri)
+            );
           }
         });
       }
@@ -229,14 +235,16 @@ class Rows {
     const n = eri - sri + 1;
     const ndata = {};
     this.each((ri, row) => {
-      const nri = parseInt(ri, 10);
+      const nri = Number.parseInt(ri, 10);
       if (nri < sri) {
         ndata[nri] = row;
       } else if (ri > eri) {
         ndata[nri - n] = row;
         this.eachCells(ri, (ci, cell) => {
-          if (cell.text && cell.text[0] === '=') {
-            cell.text = cell.text.replace(/[a-zA-Z]{1,3}\d+/g, word => expr2expr(word, 0, -n, (x, y) => y > eri));
+          if (cell.text && cell.text[0] === "=") {
+            cell.text = cell.text.replace(/[a-zA-Z]{1,3}\d+/g, (word) =>
+              expr2expr(word, 0, -n, (x, y) => y > eri)
+            );
           }
         });
       }
@@ -249,11 +257,13 @@ class Rows {
     this.each((ri, row) => {
       const rndata = {};
       this.eachCells(ri, (ci, cell) => {
-        let nci = parseInt(ci, 10);
+        let nci = Number.parseInt(ci, 10);
         if (nci >= sci) {
           nci += n;
-          if (cell.text && cell.text[0] === '=') {
-            cell.text = cell.text.replace(/[a-zA-Z]{1,3}\d+/g, word => expr2expr(word, n, 0, x => x >= sci));
+          if (cell.text && cell.text[0] === "=") {
+            cell.text = cell.text.replace(/[a-zA-Z]{1,3}\d+/g, (word) =>
+              expr2expr(word, n, 0, (x) => x >= sci)
+            );
           }
         }
         rndata[nci] = cell;
@@ -267,13 +277,15 @@ class Rows {
     this.each((ri, row) => {
       const rndata = {};
       this.eachCells(ri, (ci, cell) => {
-        const nci = parseInt(ci, 10);
+        const nci = Number.parseInt(ci, 10);
         if (nci < sci) {
           rndata[nci] = cell;
         } else if (nci > eci) {
           rndata[nci - n] = cell;
-          if (cell.text && cell.text[0] === '=') {
-            cell.text = cell.text.replace(/[a-zA-Z]{1,3}\d+/g, word => expr2expr(word, -n, 0, x => x > eci));
+          if (cell.text && cell.text[0] === "=") {
+            cell.text = cell.text.replace(/[a-zA-Z]{1,3}\d+/g, (word) =>
+              expr2expr(word, -n, 0, (x) => x > eci)
+            );
           }
         }
       });
@@ -282,27 +294,27 @@ class Rows {
   }
 
   // what: all | text | format | merge
-  deleteCells(cellRange, what = 'all') {
+  deleteCells(cellRange, what = "all") {
     cellRange.each((i, j) => {
       this.deleteCell(i, j, what);
     });
   }
 
   // what: all | text | format | merge
-  deleteCell(ri, ci, what = 'all') {
+  deleteCell(ri, ci, what = "all") {
     const row = this.get(ri);
     if (row !== null) {
       const cell = this.getCell(ri, ci);
       if (cell !== null && cell.editable !== false) {
-        if (what === 'all') {
+        if (what === "all") {
           delete row.cells[ci];
-        } else if (what === 'text') {
+        } else if (what === "text") {
           if (cell.text) delete cell.text;
           if (cell.value) delete cell.value;
-        } else if (what === 'format') {
+        } else if (what === "format") {
           if (cell.style !== undefined) delete cell.style;
           if (cell.merge) delete cell.merge;
-        } else if (what === 'merge') {
+        } else if (what === "merge") {
           if (cell.merge) delete cell.merge;
         }
       }
@@ -317,7 +329,7 @@ class Rows {
       const { cells } = col;
       const ks = Object.keys(cells);
       const ci = ks[ks.length - 1];
-      return [parseInt(ri, 10), parseInt(ci, 10)];
+      return [Number.parseInt(ri, 10), Number.parseInt(ci, 10)];
     }
     return [0, 0];
   }
@@ -329,7 +341,7 @@ class Rows {
   }
 
   eachCells(ri, cb) {
-    if (this._[ri] && this._[ri].cells) {
+    if (this._[ri]?.cells) {
       Object.entries(this._[ri].cells).forEach(([ci, cell]) => {
         cb(ci, cell);
       });
@@ -351,6 +363,4 @@ class Rows {
 }
 
 export default {};
-export {
-  Rows,
-};
+export { Rows };
