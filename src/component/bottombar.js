@@ -2,7 +2,7 @@ import { h } from './element';
 import { bindClickoutside, unbindClickoutside } from './event';
 import { cssPrefix } from '../config';
 import Icon from './icon';
-import FormInput from './form_input';
+import FormInput from './form-input';
 import Dropdown from './dropdown';
 // Record: temp not used
 // import { xtoast } from './message';

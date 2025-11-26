@@ -4,13 +4,13 @@ import Selector from './selector';
 import Scroll from './scroll';
 import History from './history';
 import Clipboard from './clipboard';
-import AutoFilter from './auto_filter';
+import AutoFilter from './auto-filter';
 import { Merges } from './merge';
 import helper from './helper';
 import { Rows } from './row';
 import { Cols } from './col';
 import { Validations } from './validation';
-import { CellRange } from './cell_range';
+import { CellRange } from './cell-range';
 import { expr2xy, xy2expr } from './alphabet';
 import { t } from '../locale/locale';
 

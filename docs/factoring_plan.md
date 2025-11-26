@@ -2,7 +2,26 @@
 
 This document outlines the comprehensive plan to modernize `y-grid` by migrating to TypeScript incrementally, improving the development workflow, optimizing rendering performance, and introducing a renderer abstraction layer.
 
-## 1. TypeScript Migration (Incremental)
+## 1. Codebase Convention Cleanup
+
+**Goal**: Standardize file naming conventions and directory structure before proceeding with other refactoring tasks.
+
+### Conventions
+
+1. **File names**: Use hyphen-case (kebab-case), e.g., `foo-bar.js` not `foo_bar.js`
+2. **Test directory**: Use `tests/` (plural), not `test/`
+3. **Test files**: Use `.test.js` or `.test.ts` suffix, e.g., `foo.test.js` not `foo_test.js`
+
+### Tasks
+- [x] Rename all source files with underscores to use hyphens
+- [x] Rename `test/` directory to `tests/`
+- [x] Rename all test files to use `.test.js` suffix
+- [x] Update all import statements to reflect new file names
+- [x] Update test configuration to use `tests/` directory
+
+---
+
+## 2. TypeScript Migration (Incremental)
 
 **Goal**: Gradually convert the codebase to TypeScript to improve type safety, maintainability, and developer experience. This is an **incremental migration** - JavaScript and TypeScript will coexist during the transition.
 
@@ -65,7 +84,7 @@ This document outlines the comprehensive plan to modernize `y-grid` by migrating
 
 ---
 
-## 2. Dev Workflow Optimization
+## 3. Dev Workflow Optimization
 
 **Goal**: Ensure `npm run dev` builds the library in watch mode and serves the demo with the latest code automatically.
 
@@ -86,11 +105,11 @@ We will use `vite build --watch` to continuously rebuild the `dist` artifacts, a
 
 ---
 
-## 3. Rendering Performance Optimization
+## 4. Rendering Performance Optimization
 
 **Goal**: Optimize rendering performance through virtual scrolling, caching, dirty region tracking, and chunked rendering.
 
-### 3.1 Virtual Scrolling
+### 4.1 Virtual Scrolling
 Only render cells that are visible in the current viewport.
 
 - [ ] Calculate visible row/column range based on scroll position
@@ -99,7 +118,7 @@ Only render cells that are visible in the current viewport.
 - [ ] Add buffer zones (render extra rows/cols outside viewport for smoother scrolling)
 - [ ] Update on scroll with debouncing/throttling
 
-### 3.2 Dirty Region Rendering
+### 4.2 Dirty Region Rendering
 Only re-render regions that have changed.
 
 - [ ] Implement dirty region tracking system
@@ -109,7 +128,7 @@ Only re-render regions that have changed.
 - [ ] Only repaint dirty regions instead of full canvas
 - [ ] Clear dirty flags after render
 
-### 3.3 Text Rendering Cache
+### 4.3 Text Rendering Cache
 Cache rendered text to avoid expensive text measurement and drawing.
 
 - [ ] Create text metrics cache (width, height per string/font combo)
@@ -117,7 +136,7 @@ Cache rendered text to avoid expensive text measurement and drawing.
 - [ ] Implement cache invalidation on font/style changes
 - [ ] Implement LRU eviction for cache size management
 
-### 3.4 Cell Rendering Cache
+### 4.4 Cell Rendering Cache
 Cache rendered cells to avoid redundant drawing operations.
 
 - [ ] Create off-screen canvas/ImageBitmap cache for cell content
@@ -125,7 +144,7 @@ Cache rendered cells to avoid redundant drawing operations.
 - [ ] Implement cache invalidation strategy
 - [ ] Use cached images for repeated cells (e.g., same value/style)
 
-### 3.5 Chunked Rendering (Tiled Rendering)
+### 4.5 Chunked Rendering (Tiled Rendering)
 Divide the grid into chunks/tiles for efficient rendering and caching.
 
 - [ ] Define chunk size (e.g., 10x10 cells per chunk)
@@ -134,7 +153,7 @@ Divide the grid into chunks/tiles for efficient rendering and caching.
 - [ ] Invalidate only affected chunks on changes
 - [ ] Implement chunk recycling for memory efficiency
 
-### 3.6 Scroll Experience Optimization
+### 4.6 Scroll Experience Optimization
 Improve the perceived smoothness of scrolling.
 
 - [ ] Implement requestAnimationFrame-based scroll rendering
@@ -143,7 +162,7 @@ Improve the perceived smoothness of scrolling.
 - [ ] Optimize scroll event handling (passive listeners, throttling)
 - [ ] Consider using CSS transforms for scroll offset (GPU acceleration)
 
-### 3.7 Data Structure Simplification
+### 4.7 Data Structure Simplification
 Simplify internal data structures for better performance.
 
 - [ ] Audit current `Rows` class nested object structure
@@ -154,7 +173,7 @@ Simplify internal data structures for better performance.
 
 ---
 
-## 4. Renderer Abstraction Layer
+## 5. Renderer Abstraction Layer
 
 **Goal**: Introduce an abstract renderer interface to decouple rendering logic from the specific rendering implementation, allowing future backends (Canvas2D, WebGL, WebGPU, or custom renderers).
 
@@ -212,18 +231,20 @@ const spreadsheet = new Spreadsheet('#container', {
 
 ---
 
-## 5. Execution Order
+## 6. Execution Order
 
-1. **TypeScript Migration - Setup** (Foundation)
-2. **Dev Workflow Optimization** (Productivity)
-3. **Renderer Abstraction Layer** (Architecture)
-4. **Rendering Performance Optimization** (Performance)
-5. **TypeScript Migration - Continue incrementally** (Ongoing)
+1. **Codebase Convention Cleanup** (Consistency) - First priority
+2. **TypeScript Migration - Setup** (Foundation)
+3. **Dev Workflow Optimization** (Productivity)
+4. **Renderer Abstraction Layer** (Architecture)
+5. **Rendering Performance Optimization** (Performance)
+6. **TypeScript Migration - Continue incrementally** (Ongoing)
 
 ### Priority Matrix
 
 | Task | Impact | Effort | Priority |
 |------|--------|--------|----------|
+| Convention Cleanup | Medium | Low | Highest |
 | TS Setup | Medium | Low | High |
 | Dev Workflow | Medium | Low | High |
 | Renderer Abstraction | High | Medium | High |

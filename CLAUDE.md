@@ -16,13 +16,13 @@ npm run preview      # Preview production build
 npm run lint         # Run Biome linter
 npm run lint:fix     # Auto-fix lint issues
 npm run format       # Format code with Biome
-npm run test         # Run tests with Mocha + nyc coverage
+npm run test         # Run tests with Vitest
 ```
 
 ### Running a single test
 
 ```bash
-./node_modules/mocha/bin/mocha --require @babel/register test/core/formula_test.js
+npx vitest run tests/core/formula.test.js
 ```
 
 ## Architecture
@@ -32,7 +32,7 @@ npm run test         # Run tests with Mocha + nyc coverage
 The spreadsheet follows a data-driven architecture:
 
 1. **Spreadsheet** (`src/index.js`) - Main entry point that manages multiple sheets via `DataProxy` instances
-2. **DataProxy** (`src/core/data_proxy.js`) - Central data store for each sheet. Manages:
+2. **DataProxy** (`src/core/data-proxy.js`) - Central data store for each sheet. Manages:
    - Cell data, styles, merges, validations
    - Selection state (`Selector`)
    - Scroll position (`Scroll`)
@@ -50,7 +50,7 @@ All spreadsheet content is drawn on a single `<canvas>` element by `Table` (`src
 
 ### Key Core Modules
 
-- `src/core/cell_range.js` - CellRange class for range operations (A1:B5 style)
+- `src/core/cell-range.js` - CellRange class for range operations (A1:B5 style)
 - `src/core/alphabet.js` - Column letter ↔ index conversion (A=0, B=1, etc.)
 - `src/core/row.js` / `src/core/col.js` - Row/column data and dimensions
 - `src/core/merge.js` - Merged cell tracking

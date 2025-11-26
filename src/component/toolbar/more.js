@@ -1,5 +1,5 @@
 import Dropdown from '../dropdown';
-import DropdownItem from './dropdown_item';
+import DropdownItem from './dropdown-item';
 
 import { cssPrefix } from '../../config';
 import { h } from '../element';

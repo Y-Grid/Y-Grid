@@ -1,7 +1,7 @@
 import { h } from './element';
 import Icon from './icon';
-import DropdownColor from './dropdown_color';
-import DropdownLineType from './dropdown_linetype';
+import DropdownColor from './dropdown-color';
+import DropdownLineType from './dropdown-linetype';
 import { cssPrefix } from '../config';
 
 function buildTable(...trs) {

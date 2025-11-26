@@ -1,4 +1,4 @@
-import ToggleItem from './toggle_item';
+import ToggleItem from './toggle-item';
 
 export default class Textwrap extends ToggleItem {
   constructor() {

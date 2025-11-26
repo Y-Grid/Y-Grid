@@ -1,6 +1,6 @@
 /* global window, document */
 import { h } from './component/element';
-import DataProxy from './core/data_proxy';
+import DataProxy from './core/data-proxy';
 import Sheet from './component/sheet';
 import Bottombar from './component/bottombar';
 import { cssPrefix } from './config';

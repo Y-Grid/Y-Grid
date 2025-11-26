@@ -4,7 +4,7 @@ import { resolve } from "path";
 export default defineConfig({
   test: {
     globals: true,
-    include: ["test/**/*_test.{js,ts}"],
+    include: ["tests/**/*.test.{js,ts}"],
     coverage: {
       provider: "v8",
       include: ["src/**/*.{js,ts}"],

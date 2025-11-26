@@ -1,5 +1,5 @@
 // docs
-import './_.prototypes';
+import './prototypes';
 
 /** default font list
  * @type {BaseFont[]}

@@ -1,5 +1,5 @@
 import { describe, it, assert } from 'vitest';
-import { CellRange } from '../../src/core/cell_range';
+import { CellRange } from '../../src/core/cell-range';
 
 describe('CellRange', () => {
   describe('#constructor()', () => {

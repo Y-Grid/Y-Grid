@@ -1,6 +1,6 @@
 import Dropdown from './dropdown';
 import Icon from './icon';
-import BorderPalette from './border_palette';
+import BorderPalette from './border-palette';
 
 export default class DropdownBorder extends Dropdown {
   constructor() {

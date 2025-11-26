@@ -1,5 +1,5 @@
-import DropdownItem from './dropdown_item';
-import DropdownFontsize from '../dropdown_fontsize';
+import DropdownItem from './dropdown-item';
+import DropdownFontsize from '../dropdown-fontsize';
 
 export default class Format extends DropdownItem {
   constructor() {

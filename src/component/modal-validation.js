@@ -1,7 +1,7 @@
 import Modal from './modal';
-import FormInput from './form_input';
-import FormSelect from './form_select';
-import FormField from './form_field';
+import FormInput from './form-input';
+import FormSelect from './form-select';
+import FormField from './form-field';
 import Button from './button';
 import { t } from '../locale/locale';
 import { h } from './element';
