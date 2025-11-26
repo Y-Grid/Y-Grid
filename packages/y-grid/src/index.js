@@ -5,10 +5,11 @@ import Sheet from './component/sheet';
 import Bottombar from './component/bottombar';
 import { cssPrefix } from './config';
 import { locale } from './locale/locale';
+import { parseCSV, parseCSVFile } from './core/csv-parser';
 import './index.less';
 
 
-class Spreadsheet {
+class YGrid {
   constructor(selectors, options = {}) {
     let targetEl = selectors;
     this.options = { showBottomBar: true, ...options };
@@ -123,19 +124,82 @@ class Spreadsheet {
     return this;
   }
 
+  /**
+   * Import CSV file into the grid
+   * @param {File} file - CSV file to import
+   * @param {Object} options - Parse options
+   * @param {string} options.delimiter - Field delimiter (auto-detect if not specified)
+   * @param {boolean} options.hasHeader - First row is header (default: true)
+   * @returns {Promise<{rowCount: number, colCount: number}>}
+   */
+  async importCSV(file, options = {}) {
+    const result = await parseCSVFile(file, options);
+    this.loadCSVData(result);
+    return {
+      rowCount: result.rowCount,
+      colCount: result.colCount,
+    };
+  }
+
+  /**
+   * Import CSV text into the grid
+   * @param {string} text - CSV text to import
+   * @param {Object} options - Parse options
+   * @returns {{rowCount: number, colCount: number}}
+   */
+  importCSVText(text, options = {}) {
+    const result = parseCSV(text, options);
+    this.loadCSVData(result);
+    return {
+      rowCount: result.rowCount,
+      colCount: result.colCount,
+    };
+  }
+
+  /**
+   * Load parsed CSV data into grid
+   * @private
+   */
+  loadCSVData(result) {
+    const { headers, data } = result;
+    if (data.length === 0 && headers.length === 0) return;
+
+    // Include headers as first row
+    const allRows = headers.length > 0 ? [headers, ...data] : data;
+    const rows = { len: allRows.length };
+
+    allRows.forEach((row, ri) => {
+      const cells = {};
+      row.forEach((cell, ci) => {
+        if (cell !== '') {
+          cells[ci] = { text: cell };
+        }
+      });
+      if (Object.keys(cells).length > 0) {
+        rows[ri] = { cells };
+      }
+    });
+
+    this.loadData([{ rows }]);
+  }
+
   static locale(lang, message) {
     locale(lang, message);
   }
 }
 
-const spreadsheet = (el, options = {}) => new Spreadsheet(el, options);
+const ygrid = (el, options = {}) => new YGrid(el, options);
 
 if (window) {
-  window.x_spreadsheet = spreadsheet;
-  window.x_spreadsheet.locale = (lang, message) => locale(lang, message);
+  window.YGrid = YGrid;
+  window.ygrid = ygrid;
 }
 
-export default Spreadsheet;
+export default YGrid;
 export {
-  spreadsheet,
+  YGrid,
+  ygrid,
 };
+
+// CSV Parser exports
+export * as csvParser from './core/csv-parser';
