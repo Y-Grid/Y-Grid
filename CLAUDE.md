@@ -4,16 +4,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-x-spreadsheet is a web-based JavaScript spreadsheet library that renders using HTML5 Canvas. It's published as `x-data-spreadsheet` on npm.
+y-grid is a web-based JavaScript spreadsheet library that renders using HTML5 Canvas. Forked from x-spreadsheet.
 
 ## Development Commands
 
 ```bash
 npm install          # Install dependencies
-npm run dev          # Start dev server at http://127.0.0.1:8080
+npm run dev          # Start Vite dev server at http://localhost:8080
 npm run build        # Production build (outputs to dist/)
-npm run build-locale # Build locale files separately
-npm run lint         # Run ESLint
+npm run preview      # Preview production build
+npm run lint         # Run Biome linter
+npm run lint:fix     # Auto-fix lint issues
+npm run format       # Format code with Biome
 npm run test         # Run tests with Mocha + nyc coverage
 ```
 
@@ -68,8 +70,8 @@ Locale files in `src/locale/` (en.js, zh-cn.js, de.js, nl.js). Use `locale()` an
 
 ## Configuration
 
-ESLint extends `airbnb-base` with modifications:
-- `no-param-reassign` allows property mutation
-- `class-methods-use-this` disabled
-- Single quotes required
-- Console logging allowed
+Biome is used for linting and formatting (see `biome.json`):
+- Single quotes
+- Semicolons required
+- 2-space indentation
+- Parameter reassignment allowed
