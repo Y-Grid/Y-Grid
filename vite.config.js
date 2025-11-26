@@ -13,7 +13,6 @@ export default defineConfig({
   build: {
     lib: {
       entry: resolve(import.meta.dirname, "src/index.js"),
-      name: "y_grid",
       fileName: "y-grid",
       formats: ["es"],
     },
@@ -36,6 +35,6 @@ export default defineConfig({
   },
   server: {
     port: 8080,
-    open: true,
+    open: "/demo/index.html",
   },
 });
