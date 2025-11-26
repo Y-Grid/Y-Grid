@@ -2,10 +2,12 @@ import Dropdown from '../dropdown';
 import DropdownItem from './dropdown-item';
 
 import { cssPrefix } from '../../config';
-import { h } from '../element';
+import { h, Element } from '../element';
 import Icon from '../icon';
 
-class DropdownMore extends Dropdown {
+export class DropdownMore extends Dropdown {
+  moreBtns: Element;
+
   constructor() {
     const icon = new Icon('ellipsis');
     const moreBtns = h('div', `${cssPrefix}-toolbar-more`);
@@ -16,20 +18,22 @@ class DropdownMore extends Dropdown {
 }
 
 export default class More extends DropdownItem {
+  declare dd: DropdownMore;
+
   constructor() {
     super('more');
     this.el.hide();
   }
 
-  dropdown() {
+  dropdown(): DropdownMore {
     return new DropdownMore();
   }
 
-  show() {
+  show(): void {
     this.el.show();
   }
 
-  hide() {
+  hide(): void {
     this.el.hide();
   }
 }

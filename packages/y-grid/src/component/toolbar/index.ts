@@ -22,27 +22,41 @@ import Redo from './redo';
 import Undo from './undo';
 import Print from './print';
 import Textwrap from './textwrap';
-import More from './more';
+import More, { DropdownMore } from './more';
 import Item from './item';
+import ToggleItem from './toggle-item';
 
-import { h } from '../element';
+import { h, Element } from '../element';
 import { cssPrefix } from '../../config';
 import { bind } from '../event';
+import DataProxy from '../../core/data-proxy';
 
-function buildDivider() {
+type ToolbarItem = Item | Element;
+type ToolbarRow = ToolbarItem[] | Element;
+
+interface ExtendToolbarOption {
+  tip?: string;
+  el?: HTMLElement;
+  icon?: string;
+  onClick?: (data: unknown, proxy: DataProxy) => void;
+}
+
+function buildDivider(): Element {
   return h('div', `${cssPrefix}-toolbar-divider`);
 }
 
-function initBtns2() {
+function initBtns2(this: Toolbar): void {
   this.btns2 = [];
   this.items.forEach((it) => {
     if (Array.isArray(it)) {
-      it.forEach(({ el }) => {
-        const rect = el.box();
-        const { marginLeft, marginRight } = el.computedStyle();
-        this.btns2.push([el, rect.width + parseInt(marginLeft, 10) + parseInt(marginRight, 10)]);
+      it.forEach((item) => {
+        if (item instanceof Item) {
+          const rect = item.el.box();
+          const { marginLeft, marginRight } = item.el.computedStyle();
+          this.btns2.push([item.el, rect.width + parseInt(marginLeft, 10) + parseInt(marginRight, 10)]);
+        }
       });
-    } else {
+    } else if (it instanceof Element) {
       const rect = it.box();
       const { marginLeft, marginRight } = it.computedStyle();
       this.btns2.push([it, rect.width + parseInt(marginLeft, 10) + parseInt(marginRight, 10)]);
@@ -50,18 +64,19 @@ function initBtns2() {
   });
 }
 
-function moreResize() {
+function moreResize(this: Toolbar): void {
   const {
     el, btns, moreEl, btns2,
   } = this;
-  const { moreBtns, contentEl } = moreEl.dd;
+  const dd = moreEl.dd as DropdownMore;
+  const { moreBtns, contentEl } = dd;
   el.css('width', `${this.widthFn()}px`);
   const elBox = el.box();
 
   let sumWidth = 160;
   let sumWidth2 = 12;
-  const list1 = [];
-  const list2 = [];
+  const list1: Element[] = [];
+  const list2: Element[] = [];
   btns2.forEach(([it, w], index) => {
     sumWidth += w;
     if (index === btns2.length - 1 || sumWidth < elBox.width) {
@@ -81,14 +96,14 @@ function moreResize() {
   }
 }
 
-function genBtn(it) {
+function genBtn(this: Toolbar, it: ExtendToolbarOption): Item {
   const btn = new Item();
   btn.el.on('click', () => {
     if (it.onClick) it.onClick(this.data.getData(), this.data);
   });
   btn.tip = it.tip || '';
 
-  let { el } = it;
+  let el: HTMLElement | Element | undefined = it.el;
 
   if (it.icon) {
     el = h('img').attr('src', it.icon);
@@ -104,11 +119,44 @@ function genBtn(it) {
 }
 
 export default class Toolbar {
-  constructor(data, widthFn, isHide = false) {
+  data: DataProxy;
+  change: (...args: unknown[]) => void;
+  widthFn: () => number;
+  isHide: boolean;
+  items: ToolbarRow[];
+  el: Element;
+  btns: Element;
+  btns2: [Element, number][];
+
+  undoEl: Undo;
+  redoEl: Redo;
+  paintformatEl: Paintformat;
+  clearformatEl: Clearformat;
+  formatEl: Format;
+  fontEl: Font;
+  fontSizeEl: FontSize;
+  boldEl: Bold;
+  italicEl: Italic;
+  underlineEl: Underline;
+  strikeEl: Strike;
+  textColorEl: TextColor;
+  fillColorEl: FillColor;
+  borderEl: Border;
+  mergeEl: Merge;
+  alignEl: Align;
+  valignEl: Valign;
+  textwrapEl: Textwrap;
+  freezeEl: Freeze;
+  autofilterEl: Autofilter;
+  formulaEl: Formula;
+  moreEl: More;
+
+  constructor(data: DataProxy, widthFn: () => number, isHide = false) {
     this.data = data;
     this.change = () => {};
     this.widthFn = widthFn;
     this.isHide = isHide;
+    this.btns2 = [];
     const style = data.defaultStyle();
     this.items = [
       [
@@ -177,10 +225,12 @@ export default class Toolbar {
     this.items.forEach((it) => {
       if (Array.isArray(it)) {
         it.forEach((i) => {
-          this.btns.child(i.el);
-          i.change = (...args) => {
-            this.change(...args);
-          };
+          if (i instanceof Item) {
+            this.btns.child(i.el);
+            i.change = (...args: unknown[]) => {
+              this.change(...args);
+            };
+          }
         });
       } else {
         this.btns.child(it.el);
@@ -202,34 +252,35 @@ export default class Toolbar {
     }
   }
 
-  paintformatActive() {
+  paintformatActive(): boolean {
     return this.paintformatEl.active();
   }
 
-  paintformatToggle() {
+  paintformatToggle(): void {
     this.paintformatEl.toggle();
   }
 
-  trigger(type) {
-    this[`${type}El`].click();
+  trigger(type: string): void {
+    const el = this[`${type}El` as keyof Toolbar];
+    if (el && el instanceof ToggleItem) {
+      el.click();
+    }
   }
 
-  resetData(data) {
+  resetData(data: DataProxy): void {
     this.data = data;
     this.reset();
   }
 
-  reset() {
+  reset(): void {
     if (this.isHide) return;
     const { data } = this;
     const style = data.getSelectedCellStyle();
-    // console.log('canUndo:', data.canUndo());
     this.undoEl.setState(!data.canUndo());
     this.redoEl.setState(!data.canRedo());
     this.mergeEl.setState(data.canUnmerge(), !data.selector.multiple());
+    // @ts-expect-error - Autofilter.setState has empty signature
     this.autofilterEl.setState(!data.canAutofilter());
-    // this.mergeEl.disabled();
-    // console.log('selectedCell:', style, cell);
     const { font, format } = style;
     this.formatEl.setState(format);
     this.fontEl.setState(font.name);
@@ -243,7 +294,6 @@ export default class Toolbar {
     this.alignEl.setState(style.align);
     this.valignEl.setState(style.valign);
     this.textwrapEl.setState(style.textwrap);
-    // console.log('freeze is Active:', data.freezeIsActive());
     this.freezeEl.setState(data.freezeIsActive());
   }
 }

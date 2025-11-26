@@ -1,16 +1,21 @@
 import DropdownItem from './dropdown-item';
 import DropdownFormat from '../dropdown-format';
+import Dropdown from '../dropdown';
+
+interface FormatItem {
+  key: string;
+}
 
 export default class Format extends DropdownItem {
   constructor() {
     super('format');
   }
 
-  getValue(it) {
-    return it.key;
+  getValue(it: unknown): string {
+    return (it as FormatItem).key;
   }
 
-  dropdown() {
+  dropdown(): Dropdown {
     return new DropdownFormat();
   }
 }

@@ -5,5 +5,5 @@ export default class Paintformat extends ToggleItem {
     super('paintformat');
   }
 
-  setState() {}
+  setState(): void {}
 }

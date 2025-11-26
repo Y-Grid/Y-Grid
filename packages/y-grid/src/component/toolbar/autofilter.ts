@@ -5,5 +5,5 @@ export default class Autofilter extends ToggleItem {
     super('autofilter');
   }
 
-  setState() {}
+  setState(): void {}
 }

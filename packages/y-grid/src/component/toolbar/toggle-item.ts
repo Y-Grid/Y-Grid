@@ -1,27 +1,28 @@
 import Item from './item';
 import Icon from '../icon';
+import { Element } from '../element';
 
 export default class ToggleItem extends Item {
-  element() {
+  element(): Element {
     const { tag } = this;
     return super.element()
       .child(new Icon(tag))
       .on('click', () => this.click());
   }
 
-  click() {
+  click(): void {
     this.change(this.tag, this.toggle());
   }
 
-  setState(active) {
+  setState(active: boolean): void {
     this.el.active(active);
   }
 
-  toggle() {
+  toggle(): boolean {
     return this.el.toggle();
   }
 
-  active() {
+  active(): boolean {
     return this.el.hasClass('active');
   }
 }
