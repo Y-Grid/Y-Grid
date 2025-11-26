@@ -3,12 +3,12 @@ import { h } from './element';
 import Icon from './icon';
 import { cssPrefix } from '../config';
 
-function buildItemWithIcon(iconName) {
-  return h('div', `${cssPrefix}-item`).child(new Icon(iconName));
+function buildItemWithIcon(iconName: string): Icon {
+  return h('div', `${cssPrefix}-item`).child(new Icon(iconName)) as unknown as Icon;
 }
 
 export default class DropdownAlign extends Dropdown {
-  constructor(aligns, align) {
+  constructor(aligns: string[], align: string) {
     const icon = new Icon(`align-${align}`);
     const naligns = aligns.map(it => buildItemWithIcon(`align-${it}`)
       .on('click', () => {
@@ -18,8 +18,8 @@ export default class DropdownAlign extends Dropdown {
     super(icon, 'auto', true, 'bottom-left', ...naligns);
   }
 
-  setTitle(align) {
-    this.title.setName(`align-${align}`);
+  setTitle(align: string): void {
+    (this.title as Icon).setName(`align-${align}`);
     this.hide();
   }
 }

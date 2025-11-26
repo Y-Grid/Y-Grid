@@ -1,8 +1,12 @@
-import { h } from './element';
+import { Element, h } from './element';
 import { cssPrefix } from '../config';
 
 export default class FormInput {
-  constructor(width, hint) {
+  vchange: (evt?: Event) => void;
+  el: Element;
+  input: Element;
+
+  constructor(width: string, hint: string) {
     this.vchange = () => {};
     this.el = h('div', `${cssPrefix}-form-input`);
     this.input = h('input', '').css('width', width)
@@ -11,17 +15,23 @@ export default class FormInput {
     this.el.child(this.input);
   }
 
-  focus() {
+  focus(): void {
     setTimeout(() => {
       this.input.el.focus();
     }, 10);
   }
 
-  hint(v) {
+  hint(v: string): void {
     this.input.attr('placeholder', v);
   }
 
-  val(v) {
-    return this.input.val(v);
+  val(): string;
+  val(v: string): this;
+  val(v?: string): this | string {
+    if (v !== undefined) {
+      this.input.val(v);
+      return this;
+    }
+    return this.input.val();
   }
 }

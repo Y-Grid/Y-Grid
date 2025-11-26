@@ -1,5 +1,4 @@
-/* global window document */
-import { h } from './element';
+import { Element, h } from './element';
 import { cssPrefix } from '../config';
 import Button from './button';
 import { Draw } from '../canvas/draw';
@@ -12,7 +11,34 @@ import { t } from '../locale/locale';
 // 300 => 2479 x 3508
 // 96 * cm / 2.54 , 96 * cm / 2.54
 
-const PAGER_SIZES = [
+type PagerSize = [string, number, number];
+type Orientation = 'landscape' | 'portrait';
+
+interface DataProxy {
+  viewWidth: () => number;
+  viewHeight: () => number;
+  contentRange: () => { w: number; h: number; eri: number; eci: number };
+  rows: { getHeight: (ri: number) => number };
+  eachMergesInView: (range: ViewRange, cb: (merge: { sri: number; sci: number }) => void) => void;
+}
+
+interface ViewRange {
+  sri: number;
+  sci: number;
+  eri: number;
+  eci: number;
+}
+
+interface Paper {
+  w: number;
+  h: number;
+  padding: number;
+  orientation: Orientation;
+  readonly width: number;
+  readonly height: number;
+}
+
+const PAGER_SIZES: PagerSize[] = [
   ['A3', 11.69, 16.54],
   ['A4', 8.27, 11.69],
   ['A5', 5.83, 8.27],
@@ -20,13 +46,13 @@ const PAGER_SIZES = [
   ['B5', 6.93, 9.84],
 ];
 
-const PAGER_ORIENTATIONS = ['landscape', 'portrait'];
+const PAGER_ORIENTATIONS: Orientation[] = ['landscape', 'portrait'];
 
-function inches2px(inc) {
-  return parseInt(96 * inc, 10);
+function inches2px(inc: number): number {
+  return parseInt(String(96 * inc), 10);
 }
 
-function btnClick(type) {
+function btnClick(this: Print, type: string): void {
   if (type === 'cancel') {
     this.el.hide();
   } else {
@@ -34,25 +60,31 @@ function btnClick(type) {
   }
 }
 
-function pagerSizeChange(evt) {
+function pagerSizeChange(this: Print, evt: Event): void {
   const { paper } = this;
-  const { value } = evt.target;
-  const ps = PAGER_SIZES[value];
+  const { value } = evt.target as HTMLSelectElement;
+  const ps = PAGER_SIZES[Number(value)];
   paper.w = inches2px(ps[1]);
   paper.h = inches2px(ps[2]);
-  // console.log('paper:', ps, paper);
   this.preview();
 }
-function pagerOrientationChange(evt) {
+
+function pagerOrientationChange(this: Print, evt: Event): void {
   const { paper } = this;
-  const { value } = evt.target;
-  const v = PAGER_ORIENTATIONS[value];
+  const { value } = evt.target as HTMLSelectElement;
+  const v = PAGER_ORIENTATIONS[Number(value)];
   paper.orientation = v;
   this.preview();
 }
 
 export default class Print {
-  constructor(data) {
+  paper: Paper;
+  data: DataProxy;
+  el: Element;
+  contentEl: Element;
+  canvases: HTMLCanvasElement[];
+
+  constructor(data: DataProxy) {
     this.paper = {
       w: inches2px(PAGER_SIZES[0][1]),
       h: inches2px(PAGER_SIZES[0][2]),
@@ -66,6 +98,8 @@ export default class Print {
       },
     };
     this.data = data;
+    this.canvases = [];
+    this.contentEl = h('div', '-content');
     this.el = h('div', `${cssPrefix}-print`)
       .children(
         h('div', `${cssPrefix}-print-bar`)
@@ -80,19 +114,19 @@ export default class Print {
           ),
         h('div', `${cssPrefix}-print-content`)
           .children(
-            this.contentEl = h('div', '-content'),
+            this.contentEl,
             h('div', '-sider').child(
               h('form', '').children(
                 h('fieldset', '').children(
                   h('label', '').child(`${t('print.size')}`),
                   h('select', '').children(
-                    ...PAGER_SIZES.map((it, index) => h('option', '').attr('value', index).child(`${it[0]} ( ${it[1]}''x${it[2]}'' )`)),
+                    ...PAGER_SIZES.map((it, index) => h('option', '').attr('value', String(index)).child(`${it[0]} ( ${it[1]}''x${it[2]}'' )`)),
                   ).on('change', pagerSizeChange.bind(this)),
                 ),
                 h('fieldset', '').children(
                   h('label', '').child(`${t('print.orientation')}`),
                   h('select', '').children(
-                    ...PAGER_ORIENTATIONS.map((it, index) => h('option', '').attr('value', index).child(`${t('print.orientations')[index]}`)),
+                    ...PAGER_ORIENTATIONS.map((it, index) => h('option', '').attr('value', String(index)).child(`${(t('print.orientations') as string[])[index]}`)),
                   ).on('change', pagerOrientationChange.bind(this)),
                 ),
               ),
@@ -101,17 +135,17 @@ export default class Print {
       ).hide();
   }
 
-  resetData(data) {
+  resetData(data: DataProxy): void {
     this.data = data;
   }
 
-  preview() {
+  preview(): void {
     const { data, paper } = this;
     const { width, height, padding } = paper;
     const iwidth = width - padding * 2;
     const iheight = height - padding * 2;
     const cr = data.contentRange();
-    const pages = parseInt(cr.h / iheight, 10) + 1;
+    const pages = parseInt(String(cr.h / iheight), 10) + 1;
     const scale = iwidth / cr.w;
     let left = padding;
     const top = padding;
@@ -122,7 +156,7 @@ export default class Print {
     let yoffset = 0;
     this.contentEl.html('');
     this.canvases = [];
-    const mViewRange = {
+    const mViewRange: ViewRange = {
       sri: 0,
       sci: 0,
       eri: 0,
@@ -133,19 +167,18 @@ export default class Print {
       let yo = 0;
       const wrap = h('div', `${cssPrefix}-canvas-card`);
       const canvas = h('canvas', `${cssPrefix}-canvas`);
-      this.canvases.push(canvas.el);
-      const draw = new Draw(canvas.el, width, height);
+      this.canvases.push(canvas.el as HTMLCanvasElement);
+      const draw = new Draw(canvas.el as HTMLCanvasElement, width, height);
       // cell-content
       draw.save();
       draw.translate(left, top);
       if (scale < 1) draw.scale(scale, scale);
-      // console.log('ri:', ri, cr.eri, yoffset);
       for (; ri <= cr.eri; ri += 1) {
         const rh = data.rows.getHeight(ri);
         th += rh;
         if (th < iheight) {
           for (let ci = 0; ci <= cr.eci; ci += 1) {
-            renderCell(draw, data, ri, ci, yoffset);
+            renderCell(draw, data as unknown as Parameters<typeof renderCell>[1], ri, ci, yoffset);
             mViewRange.eci = ci;
           }
         } else {
@@ -161,7 +194,7 @@ export default class Print {
       if (scale < 1) draw.scale(scale, scale);
       const yof = yoffset;
       data.eachMergesInView(mViewRange, ({ sri, sci }) => {
-        renderCell(draw, data, sri, sci, yof);
+        renderCell(draw, data as unknown as Parameters<typeof renderCell>[1], sri, sci, yof);
       });
       draw.restore();
 
@@ -173,31 +206,30 @@ export default class Print {
     this.el.show();
   }
 
-  toPrint() {
+  toPrint(): void {
     this.el.hide();
     const { paper } = this;
     const iframe = h('iframe', '').hide();
     const { el } = iframe;
     window.document.body.appendChild(el);
-    const { contentWindow } = el;
-    const idoc = contentWindow.document;
+    const { contentWindow } = el as HTMLIFrameElement;
+    const idoc = contentWindow!.document;
     const style = document.createElement('style');
     style.innerHTML = `
       @page { size: ${paper.width}px ${paper.height}px; };
       canvas {
-        page-break-before: auto;        
+        page-break-before: auto;
         page-break-after: always;
         image-rendering: pixelated;
       };
     `;
     idoc.head.appendChild(style);
     this.canvases.forEach((it) => {
-      const cn = it.cloneNode(false);
+      const cn = it.cloneNode(false) as HTMLCanvasElement;
       const ctx = cn.getContext('2d');
-      // ctx.imageSmoothingEnabled = true;
-      ctx.drawImage(it, 0, 0);
+      ctx!.drawImage(it, 0, 0);
       idoc.body.appendChild(cn);
     });
-    contentWindow.print();
+    contentWindow!.print();
   }
 }

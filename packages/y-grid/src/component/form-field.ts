@@ -1,15 +1,34 @@
-import { h } from './element';
+import { Element, h } from './element';
 import { cssPrefix } from '../config';
 import { t } from '../locale/locale';
+import FormInput from './form-input';
+import FormSelect from './form-select';
 
-const patterns = {
+const patterns: Record<string, RegExp> = {
   number: /(^\d+$)|(^\d+(\.\d{0,4})?$)/,
   date: /^\d{4}-\d{1,2}-\d{1,2}$/,
 };
 
+export interface FormFieldRule {
+  required?: boolean;
+  type?: string;
+  pattern?: RegExp;
+}
+
 // rule: { required: false, type, pattern: // }
 export default class FormField {
-  constructor(input, rule, label, labelWidth) {
+  label: Element | string;
+  rule: FormFieldRule;
+  tip: Element;
+  input: FormInput | FormSelect;
+  el: Element;
+
+  constructor(
+    input: FormInput | FormSelect,
+    rule: FormFieldRule,
+    label?: string,
+    labelWidth?: number
+  ) {
     this.label = '';
     this.rule = rule;
     if (label) {
@@ -19,35 +38,37 @@ export default class FormField {
     this.input = input;
     this.input.vchange = () => this.validate();
     this.el = h('div', `${cssPrefix}-form-field`)
-      .children(this.label, input.el, this.tip);
+      .children(this.label as Element, input.el, this.tip);
   }
 
-  isShow() {
+  isShow(): boolean {
     return this.el.css('display') !== 'none';
   }
 
-  show() {
+  show(): void {
     this.el.show();
   }
 
-  hide() {
+  hide(): this {
     this.el.hide();
     return this;
   }
 
-  val(v) {
-    return this.input.val(v);
+  val(v?: string): this | string | unknown {
+    return this.input.val(v as string);
   }
 
-  hint(hint) {
-    this.input.hint(hint);
+  hint(hint: string): void {
+    if (this.input instanceof FormInput) {
+      this.input.hint(hint);
+    }
   }
 
-  validate() {
+  validate(): boolean {
     const {
       input, rule, tip, el,
     } = this;
-    const v = input.val();
+    const v = input.val() as string;
     if (rule.required) {
       if (/^\s*$/.test(v)) {
         tip.html(t('validation.required'));
@@ -56,7 +77,7 @@ export default class FormField {
       }
     }
     if (rule.type || rule.pattern) {
-      const pattern = rule.pattern || patterns[rule.type];
+      const pattern = rule.pattern || patterns[rule.type!];
       if (!pattern.test(v)) {
         tip.html(t('validation.notMatch'));
         el.addClass('error');

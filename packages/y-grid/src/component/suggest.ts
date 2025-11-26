@@ -1,8 +1,16 @@
-import { h } from './element';
+import { Element, h } from './element';
 import { bindClickoutside, unbindClickoutside } from './event';
 import { cssPrefix } from '../config';
 
-function inputMovePrev(evt) {
+export interface SuggestItem {
+  key: string;
+  title?: string | (() => string);
+  label?: string;
+}
+
+type ItemClickCallback = (item: SuggestItem) => void;
+
+function inputMovePrev(this: Suggest, evt: KeyboardEvent): void {
   evt.preventDefault();
   evt.stopPropagation();
   const { filterItems } = this;
@@ -15,7 +23,7 @@ function inputMovePrev(evt) {
   filterItems[this.itemIndex].toggle();
 }
 
-function inputMoveNext(evt) {
+function inputMoveNext(this: Suggest, evt: KeyboardEvent): void {
   evt.stopPropagation();
   const { filterItems } = this;
   if (filterItems.length <= 0) return;
@@ -27,7 +35,7 @@ function inputMoveNext(evt) {
   filterItems[this.itemIndex].toggle();
 }
 
-function inputEnter(evt) {
+function inputEnter(this: Suggest, evt: KeyboardEvent): void {
   evt.preventDefault();
   const { filterItems } = this;
   if (filterItems.length <= 0) return;
@@ -37,7 +45,7 @@ function inputEnter(evt) {
   this.hide();
 }
 
-function inputKeydownHandler(evt) {
+function inputKeydownHandler(this: Suggest, evt: KeyboardEvent): void {
   const { keyCode } = evt;
   if (evt.ctrlKey) {
     evt.stopPropagation();
@@ -68,7 +76,13 @@ function inputKeydownHandler(evt) {
 }
 
 export default class Suggest {
-  constructor(items, itemClick, width = '200px') {
+  filterItems: Element[];
+  items: SuggestItem[];
+  el: Element;
+  itemClick: ItemClickCallback;
+  itemIndex: number;
+
+  constructor(items: SuggestItem[], itemClick: ItemClickCallback, width: string = '200px') {
     this.filterItems = [];
     this.items = items;
     this.el = h('div', `${cssPrefix}-suggest`).css('width', width).hide();
@@ -76,12 +90,12 @@ export default class Suggest {
     this.itemIndex = -1;
   }
 
-  setOffset(v) {
+  setOffset(v: { top?: number; left?: number; bottom?: number }): void {
     this.el.cssRemoveKeys('top', 'bottom')
       .offset(v);
   }
 
-  hide() {
+  hide(): void {
     const { el } = this;
     this.filterItems = [];
     this.itemIndex = -1;
@@ -89,27 +103,26 @@ export default class Suggest {
     unbindClickoutside(this.el.parent());
   }
 
-  setItems(items) {
+  setItems(items: SuggestItem[]): void {
     this.items = items;
-    // this.search('');
   }
 
-  search(word) {
+  search(word: string): void {
     let { items } = this;
     if (!/^\s*$/.test(word)) {
-      items = items.filter(it => (it.key || it).startsWith(word.toUpperCase()));
+      items = items.filter(it => (it.key || it).toString().startsWith(word.toUpperCase()));
     }
-    items = items.map((it) => {
-      let { title } = it;
+    const filteredElements = items.map((it) => {
+      let title: string | (() => string) | undefined = it.title;
       if (title) {
         if (typeof title === 'function') {
           title = title();
         }
       } else {
-        title = it;
+        title = it.key;
       }
       const item = h('div', `${cssPrefix}-item`)
-        .child(title)
+        .child(title as string)
         .on('click.stop', () => {
           this.itemClick(it);
           this.hide();
@@ -119,17 +132,16 @@ export default class Suggest {
       }
       return item;
     });
-    this.filterItems = items;
-    if (items.length <= 0) {
+    this.filterItems = filteredElements;
+    if (filteredElements.length <= 0) {
       return;
     }
     const { el } = this;
-    // items[0].toggle();
-    el.html('').children(...items).show();
+    el.html('').children(...filteredElements).show();
     bindClickoutside(el.parent(), () => { this.hide(); });
   }
 
-  bindInputEvents(input) {
-    input.on('keydown', evt => inputKeydownHandler.call(this, evt));
+  bindInputEvents(input: Element): void {
+    input.on('keydown', evt => inputKeydownHandler.call(this, evt as KeyboardEvent));
   }
 }

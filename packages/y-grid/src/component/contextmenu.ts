@@ -1,9 +1,20 @@
-import { h } from './element';
+import { Element, h } from './element';
 import { bindClickoutside, unbindClickoutside } from './event';
 import { cssPrefix } from '../config';
 import { tf } from '../locale/locale';
 
-const menuItems = [
+interface MenuItem {
+  key: string;
+  title?: () => string;
+  label?: string;
+}
+
+interface ViewDimensions {
+  width: number;
+  height: number;
+}
+
+const menuItems: MenuItem[] = [
   { key: 'copy', title: tf('contextmenu.copy'), label: 'Ctrl+C' },
   { key: 'cut', title: tf('contextmenu.cut'), label: 'Ctrl+X' },
   { key: 'paste', title: tf('contextmenu.paste'), label: 'Ctrl+V' },
@@ -27,7 +38,7 @@ const menuItems = [
   { key: 'cell-non-editable', title: tf('contextmenu.cellnoneditable') },
 ];
 
-function buildMenuItem(item) {
+function buildMenuItem(this: ContextMenu, item: MenuItem): Element {
   if (item.key === 'divider') {
     return h('div', `${cssPrefix}-item divider`);
   }
@@ -37,17 +48,23 @@ function buildMenuItem(item) {
       this.hide();
     })
     .children(
-      item.title(),
+      item.title!(),
       h('div', 'label').child(item.label || ''),
     );
 }
 
-function buildMenu() {
+function buildMenu(this: ContextMenu): Element[] {
   return menuItems.map(it => buildMenuItem.call(this, it));
 }
 
 export default class ContextMenu {
-  constructor(viewFn, isHide = false) {
+  menuItems: Element[];
+  el: Element;
+  viewFn: () => ViewDimensions;
+  itemClick: (key: string) => void;
+  isHide: boolean;
+
+  constructor(viewFn: () => ViewDimensions, isHide: boolean = false) {
     this.menuItems = buildMenu.call(this);
     this.el = h('div', `${cssPrefix}-contextmenu`)
       .children(...this.menuItems)
@@ -60,7 +77,7 @@ export default class ContextMenu {
 
   // row-col: the whole rows or the whole cols
   // range: select range
-  setMode(mode) {
+  setMode(mode: 'row-col' | 'range'): void {
     const hideEl = this.menuItems[12];
     if (mode === 'row-col') {
       hideEl.show();
@@ -69,16 +86,16 @@ export default class ContextMenu {
     }
   }
 
-  hide() {
+  hide(): void {
     const { el } = this;
     el.hide();
     unbindClickoutside(el);
   }
 
-  setPosition(x, y) {
+  setPosition(x: number, y: number): void {
     if (this.isHide) return;
     const { el } = this;
-    const { width } = el.show().offset();
+    const { width } = el.show().offset() as { width: number };
     const view = this.viewFn();
     const vhf = view.height / 2;
     let left = x;

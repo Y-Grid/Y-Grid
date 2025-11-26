@@ -1,19 +1,31 @@
-import { h } from './element';
+import { Element, h } from './element';
 import Button from './button';
 import { bindClickoutside, unbindClickoutside } from './event';
 import { cssPrefix } from '../config';
 import { t } from '../locale/locale';
 
-function buildMenu(clsName) {
+interface Sort {
+  order: string;
+  asc: () => boolean;
+  desc: () => boolean;
+}
+
+interface Filter {
+  value: string[];
+}
+
+type OkCallback = (ci: number, sort: string | null, operator: string, filterValues: string[]) => void;
+
+function buildMenu(clsName: string): Element {
   return h('div', `${cssPrefix}-item ${clsName}`);
 }
 
-function buildSortItem(it) {
+function buildSortItem(this: SortFilter, it: string): Element {
   return buildMenu('state').child(t(`sort.${it}`))
     .on('click.stop', () => this.itemClick(it));
 }
 
-function buildFilterBody(items) {
+function buildFilterBody(this: SortFilter, items: Record<string, number>): void {
   const { filterbEl, filterValues } = this;
   filterbEl.html('');
   const itemKeys = Object.keys(items);
@@ -26,19 +38,33 @@ function buildFilterBody(items) {
   });
 }
 
-function resetFilterHeader() {
+function resetFilterHeader(this: SortFilter): void {
   const { filterhEl, filterValues, values } = this;
-  filterhEl.html(`${filterValues.length} / ${values.length}`);
-  filterhEl.checked(filterValues.length === values.length);
+  filterhEl.html(`${filterValues.length} / ${values!.length}`);
+  filterhEl.checked(filterValues.length === values!.length);
 }
 
 export default class SortFilter {
+  filterbEl: Element;
+  filterhEl: Element;
+  el: Element;
+  sortAscEl: Element;
+  sortDescEl: Element;
+  ci: number | null;
+  sortDesc: string | null;
+  sort: string | null;
+  values: string[] | null;
+  filterValues: string[];
+  ok?: OkCallback;
+
   constructor() {
+    this.sortAscEl = buildSortItem.call(this, 'asc');
+    this.sortDescEl = buildSortItem.call(this, 'desc');
     this.filterbEl = h('div', `${cssPrefix}-body`);
     this.filterhEl = h('div', `${cssPrefix}-header state`).on('click.stop', () => this.filterClick(0, 'all'));
     this.el = h('div', `${cssPrefix}-sort-filter`).children(
-      this.sortAscEl = buildSortItem.call(this, 'asc'),
-      this.sortDescEl = buildSortItem.call(this, 'desc'),
+      this.sortAscEl,
+      this.sortDescEl,
       buildMenu('divider'),
       h('div', `${cssPrefix}-filter`).children(
         this.filterhEl,
@@ -49,41 +75,39 @@ export default class SortFilter {
         new Button('ok', 'primary').on('click', () => this.btnClick('ok')),
       ),
     ).hide();
-    // this.setFilters(['test1', 'test2', 'text3']);
     this.ci = null;
     this.sortDesc = null;
+    this.sort = null;
     this.values = null;
     this.filterValues = [];
   }
 
-  btnClick(it) {
+  btnClick(it: string): void {
     if (it === 'ok') {
       const { ci, sort, filterValues } = this;
       if (this.ok) {
-        this.ok(ci, sort, 'in', filterValues);
+        this.ok(ci!, sort, 'in', filterValues);
       }
     }
     this.hide();
   }
 
-  itemClick(it) {
-    // console.log('it:', it);
+  itemClick(it: string): void {
     this.sort = it;
     const { sortAscEl, sortDescEl } = this;
     sortAscEl.checked(it === 'asc');
     sortDescEl.checked(it === 'desc');
   }
 
-  filterClick(index, it) {
-    // console.log('index:', index, it);
+  filterClick(index: number, it: string): void {
     const { filterbEl, filterValues, values } = this;
-    const children = filterbEl.children();
+    const children = filterbEl.children() as NodeListOf<HTMLElement>;
     if (it === 'all') {
       if (children.length === filterValues.length) {
         this.filterValues = [];
         children.forEach(i => h(i).checked(false));
       } else {
-        this.filterValues = Array.from(values);
+        this.filterValues = Array.from(values!);
         children.forEach(i => h(i).checked(true));
       }
     } else {
@@ -100,7 +124,7 @@ export default class SortFilter {
   // v: autoFilter
   // items: {value: cnt}
   // sort { ci, order }
-  set(ci, items, filter, sort) {
+  set(ci: number, items: Record<string, number>, filter: Filter | null, sort: Sort | null): void {
     this.ci = ci;
     const { sortAscEl, sortDescEl } = this;
     if (sort !== null) {
@@ -112,14 +136,13 @@ export default class SortFilter {
       sortAscEl.checked(false);
       sortDescEl.checked(false);
     }
-    // this.setFilters(items, filter);
     this.values = Object.keys(items);
     this.filterValues = filter ? Array.from(filter.value) : Object.keys(items);
-    buildFilterBody.call(this, items, filter);
+    buildFilterBody.call(this, items);
     resetFilterHeader.call(this);
   }
 
-  setOffset(v) {
+  setOffset(v: { left: number; top: number }): void {
     this.el.offset(v).show();
     let tindex = 1;
     bindClickoutside(this.el, () => {
@@ -130,11 +153,11 @@ export default class SortFilter {
     });
   }
 
-  show() {
+  show(): void {
     this.el.show();
   }
 
-  hide() {
+  hide(): void {
     this.el.hide();
     unbindClickoutside(this.el);
   }

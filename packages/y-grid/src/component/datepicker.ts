@@ -1,8 +1,11 @@
 import Calendar from './calendar';
-import { h } from './element';
+import { Element, h } from './element';
 import { cssPrefix } from '../config';
 
 export default class Datepicker {
+  calendar: Calendar;
+  el: Element;
+
   constructor() {
     this.calendar = new Calendar(new Date());
     this.el = h('div', `${cssPrefix}-datepicker`).child(
@@ -10,11 +13,9 @@ export default class Datepicker {
     ).hide();
   }
 
-  setValue(date) {
-    // console.log(':::::::', date, typeof date, date instanceof string);
+  setValue(date: string | Date): this {
     const { calendar } = this;
     if (typeof date === 'string') {
-      // console.log(/^\d{4}-\d{1,2}-\d{1,2}$/.test(date));
       if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(date)) {
         calendar.setValue(new Date(date.replace(new RegExp('-', 'g'), '/')));
       }
@@ -24,18 +25,18 @@ export default class Datepicker {
     return this;
   }
 
-  change(cb) {
-    this.calendar.selectChange = (d) => {
+  change(cb: (date: Date) => void): void {
+    this.calendar.selectChange = (d: Date) => {
       cb(d);
       this.hide();
     };
   }
 
-  show() {
+  show(): void {
     this.el.show();
   }
 
-  hide() {
+  hide(): void {
     this.el.hide();
   }
 }

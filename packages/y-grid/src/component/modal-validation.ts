@@ -9,10 +9,35 @@ import { cssPrefix } from '../config';
 
 const fieldLabelWidth = 100;
 
+interface Validator {
+  type: string;
+  operator?: string;
+  value?: string | string[];
+  required?: boolean;
+}
+
+interface ValidationData {
+  mode?: string;
+  ref?: string;
+  validator?: Validator;
+}
+
+type ChangeCallback = (action: string, mode?: string, ref?: string, validator?: Validator) => void;
+
 export default class ModalValidation extends Modal {
+  mf: FormField;
+  rf: FormField;
+  cf: FormField;
+  of: FormField;
+  minvf: FormField;
+  maxvf: FormField;
+  vf: FormField;
+  svf: FormField;
+  change: ChangeCallback;
+
   constructor() {
     const mf = new FormField(
-      new FormSelect('cell',
+      new FormSelect<string>('cell',
         ['cell'], // cell|row|column
         '100%',
         it => t(`dataValidation.modeType.${it}`)),
@@ -25,7 +50,7 @@ export default class ModalValidation extends Modal {
       { required: true, pattern: /^([A-Z]{1,2}[1-9]\d*)(:[A-Z]{1,2}[1-9]\d*)?$/ },
     );
     const cf = new FormField(
-      new FormSelect('list',
+      new FormSelect<string>('list',
         ['list', 'number', 'date', 'phone', 'email'],
         '100%',
         it => t(`dataValidation.type.${it}`),
@@ -37,7 +62,7 @@ export default class ModalValidation extends Modal {
 
     // operator
     const of = new FormField(
-      new FormSelect('be',
+      new FormSelect<string>('be',
         ['be', 'nbe', 'eq', 'neq', 'lt', 'lte', 'gt', 'gte'],
         '160px',
         it => t(`dataValidation.operator.${it}`),
@@ -93,14 +118,14 @@ export default class ModalValidation extends Modal {
     this.change = () => {};
   }
 
-  showVf(it) {
+  showVf(it: string): void {
     const hint = it === 'date' ? '2018-11-12' : '10';
     const { vf } = this;
-    vf.input.hint(hint);
+    vf.hint(hint);
     vf.show();
   }
 
-  criteriaSelected(it) {
+  criteriaSelected(it: string): void {
     const {
       of, minvf, maxvf, vf, svf,
     } = this;
@@ -132,7 +157,7 @@ export default class ModalValidation extends Modal {
     }
   }
 
-  criteriaOperatorSelected(it) {
+  criteriaOperatorSelected(it: string): void {
     if (!it) return;
     const {
       minvf, maxvf, vf,
@@ -142,7 +167,7 @@ export default class ModalValidation extends Modal {
       maxvf.show();
       vf.hide();
     } else {
-      const type = this.cf.val();
+      const type = this.cf.val() as string;
       vf.rule.type = type;
       if (type === 'date') {
         vf.hint('2018-11-12');
@@ -155,7 +180,7 @@ export default class ModalValidation extends Modal {
     }
   }
 
-  btnClick(action) {
+  btnClick(action: string): void {
     if (action === 'cancel') {
       this.hide();
     } else if (action === 'remove') {
@@ -163,29 +188,26 @@ export default class ModalValidation extends Modal {
       this.hide();
     } else if (action === 'save') {
       // validate
-      const attrs = ['mf', 'rf', 'cf', 'of', 'svf', 'vf', 'minvf', 'maxvf'];
+      const attrs = ['mf', 'rf', 'cf', 'of', 'svf', 'vf', 'minvf', 'maxvf'] as const;
       for (let i = 0; i < attrs.length; i += 1) {
         const field = this[attrs[i]];
-        // console.log('field:', field);
         if (field.isShow()) {
-          // console.log('it:', it);
           if (!field.validate()) return;
         }
       }
 
-      const mode = this.mf.val();
-      const ref = this.rf.val();
-      const type = this.cf.val();
-      const operator = this.of.val();
-      let value = this.svf.val();
+      const mode = this.mf.val() as string;
+      const ref = this.rf.val() as string;
+      const type = this.cf.val() as string;
+      const operator = this.of.val() as string;
+      let value: string | string[] = this.svf.val() as string;
       if (type === 'number' || type === 'date') {
         if (operator === 'be' || operator === 'nbe') {
-          value = [this.minvf.val(), this.maxvf.val()];
+          value = [this.minvf.val() as string, this.maxvf.val() as string];
         } else {
-          value = this.vf.val();
+          value = this.vf.val() as string;
         }
       }
-      // console.log(mode, ref, type, operator, value);
       this.change('save',
         mode,
         ref,
@@ -197,7 +219,7 @@ export default class ModalValidation extends Modal {
   }
 
   // validation: { mode, ref, validator }
-  setValue(v) {
+  setValue(v: ValidationData | null): void {
     if (v) {
       const {
         mf, rf, cf, of, svf, vf, minvf, maxvf,
@@ -220,7 +242,7 @@ export default class ModalValidation extends Modal {
         vf.val(value || '');
       }
       this.criteriaSelected(type);
-      this.criteriaOperatorSelected(operator);
+      this.criteriaOperatorSelected(operator!);
     }
     this.show();
   }

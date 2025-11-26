@@ -1,12 +1,20 @@
-/* global document */
-/* global window */
-import { h } from './element';
+import { Element, h } from './element';
 import Icon from './icon';
 import { cssPrefix } from '../config';
 import { bind, unbind } from './event';
 
+declare global {
+  interface Window {
+    xkeydownEsc?: (evt: KeyboardEvent) => void;
+  }
+}
+
 export default class Modal {
-  constructor(title, content, width = '600px') {
+  title: string;
+  el: Element;
+  dimmer!: Element;
+
+  constructor(title: string, content: Element[], width: string = '600px') {
     this.title = title;
     this.el = h('div', `${cssPrefix}-modal`).css('width', width).children(
       h('div', `${cssPrefix}-modal-header`).children(
@@ -17,7 +25,7 @@ export default class Modal {
     ).hide();
   }
 
-  show() {
+  show(): void {
     // dimmer
     this.dimmer = h('div', `${cssPrefix}-dimmer active`);
     document.body.appendChild(this.dimmer.el);
@@ -27,18 +35,20 @@ export default class Modal {
       left: (clientWidth - width) / 2,
       top: (clientHeight - height) / 3,
     });
-    window.xkeydownEsc = (evt) => {
+    window.xkeydownEsc = (evt: KeyboardEvent) => {
       if (evt.keyCode === 27) {
         this.hide();
       }
     };
-    bind(window, 'keydown', window.xkeydownEsc);
+    bind(window, 'keydown', window.xkeydownEsc as EventListener);
   }
 
-  hide() {
+  hide(): void {
     this.el.hide();
     document.body.removeChild(this.dimmer.el);
-    unbind(window, 'keydown', window.xkeydownEsc);
-    delete window.xkeydownEsc;
+    if (window.xkeydownEsc) {
+      unbind(window, 'keydown', window.xkeydownEsc as EventListener);
+      delete window.xkeydownEsc;
+    }
   }
 }

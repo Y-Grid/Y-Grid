@@ -1,22 +1,23 @@
 import Dropdown from './dropdown';
 import Icon from './icon';
 import ColorPalette from './color-palette';
+import { Element } from './element';
 
 export default class DropdownColor extends Dropdown {
-  constructor(iconName, color) {
+  constructor(iconName: string, color: string) {
     const icon = new Icon(iconName)
       .css('height', '16px')
       .css('border-bottom', `3px solid ${color}`);
     const colorPalette = new ColorPalette();
-    colorPalette.change = (v) => {
+    colorPalette.change = (v: string) => {
       this.setTitle(v);
       this.change(v);
     };
     super(icon, 'auto', false, 'bottom-left', colorPalette.el);
   }
 
-  setTitle(color) {
-    this.title.css('border-color', color);
+  setTitle(color: string): void {
+    (this.title as Element).css('border-color', color);
     this.hide();
   }
 }

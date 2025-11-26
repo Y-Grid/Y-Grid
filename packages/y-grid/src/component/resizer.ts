@@ -1,19 +1,50 @@
-/* global window */
-import { h } from './element';
+import { Element, h } from './element';
 import { mouseMoveUp } from './event';
 import { cssPrefix } from '../config';
 
+interface Rect {
+  top: number;
+  left: number;
+  width: number;
+  height: number;
+  ri?: number;
+  ci?: number;
+}
+
+interface Line {
+  width: number;
+  height: number;
+}
+
+type FinishedCallback = (rect: Rect, distance: number) => void;
+type UnhideCallback = (index: number) => void;
+
 export default class Resizer {
-  constructor(vertical = false, minDistance) {
+  moving: boolean;
+  vertical: boolean;
+  el: Element;
+  unhideHoverEl: Element;
+  hoverEl: Element;
+  lineEl: Element;
+  cRect: Rect | null;
+  finishedFn: FinishedCallback | null;
+  minDistance: number;
+  unhideFn: UnhideCallback;
+  unhideIndex?: number;
+
+  constructor(vertical: boolean = false, minDistance: number) {
     this.moving = false;
     this.vertical = vertical;
+    this.unhideHoverEl = h('div', `${cssPrefix}-resizer-hover`)
+      .on('dblclick.stop', evt => this.mousedblclickHandler(evt))
+      .css('position', 'absolute').hide();
+    this.hoverEl = h('div', `${cssPrefix}-resizer-hover`)
+      .on('mousedown.stop', evt => this.mousedownHandler(evt as MouseEvent));
+    this.lineEl = h('div', `${cssPrefix}-resizer-line`).hide();
     this.el = h('div', `${cssPrefix}-resizer ${vertical ? 'vertical' : 'horizontal'}`).children(
-      this.unhideHoverEl = h('div', `${cssPrefix}-resizer-hover`)
-        .on('dblclick.stop', evt => this.mousedblclickHandler(evt))
-        .css('position', 'absolute').hide(),
-      this.hoverEl = h('div', `${cssPrefix}-resizer-hover`)
-        .on('mousedown.stop', evt => this.mousedownHandler(evt)),
-      this.lineEl = h('div', `${cssPrefix}-resizer-line`).hide(),
+      this.unhideHoverEl,
+      this.hoverEl,
+      this.lineEl,
     ).hide();
     // cell rect
     this.cRect = null;
@@ -22,18 +53,18 @@ export default class Resizer {
     this.unhideFn = () => {};
   }
 
-  showUnhide(index) {
+  showUnhide(index: number): void {
     this.unhideIndex = index;
     this.unhideHoverEl.show();
   }
 
-  hideUnhide() {
+  hideUnhide(): void {
     this.unhideHoverEl.hide();
   }
 
   // rect : {top, left, width, height}
   // line : {width, height}
-  show(rect, line) {
+  show(rect: Rect, line: Line): void {
     const {
       moving, vertical, hoverEl, lineEl, el,
       unhideHoverEl,
@@ -63,7 +94,7 @@ export default class Resizer {
     });
   }
 
-  hide() {
+  hide(): void {
     this.el.offset({
       left: 0,
       top: 0,
@@ -71,22 +102,21 @@ export default class Resizer {
     this.hideUnhide();
   }
 
-  mousedblclickHandler() {
+  mousedblclickHandler(_evt?: Event): void {
     if (this.unhideIndex) this.unhideFn(this.unhideIndex);
   }
 
-  mousedownHandler(evt) {
-    let startEvt = evt;
+  mousedownHandler(evt: MouseEvent): void {
+    let startEvt: MouseEvent | null = evt;
     const {
       el, lineEl, cRect, vertical, minDistance,
     } = this;
+    if (!cRect) return;
     let distance = vertical ? cRect.width : cRect.height;
-    // console.log('distance:', distance);
     lineEl.show();
-    mouseMoveUp(window, (e) => {
+    mouseMoveUp(window, (e: MouseEvent) => {
       this.moving = true;
       if (startEvt !== null && e.buttons === 1) {
-        // console.log('top:', top, ', left:', top, ', cRect:', cRect);
         if (vertical) {
           distance += e.movementX;
           if (distance > minDistance) {

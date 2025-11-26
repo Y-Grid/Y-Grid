@@ -1,12 +1,11 @@
-/* global document */
 import { h } from './element';
 import Icon from './icon';
 import { cssPrefix } from '../config';
 
-export function xtoast(title, content) {
+export function xtoast(title: string, content: string): void {
   const el = h('div', `${cssPrefix}-toast`);
   const dimmer = h('div', `${cssPrefix}-dimmer active`);
-  const remove = () => {
+  const remove = (): void => {
     document.body.removeChild(el.el);
     document.body.removeChild(dimmer.el);
   };

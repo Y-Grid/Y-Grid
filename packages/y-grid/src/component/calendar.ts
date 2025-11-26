@@ -1,27 +1,32 @@
-import { h } from './element';
+import { Element, h } from './element';
 import Icon from './icon';
 import { t } from '../locale/locale';
 
-function addMonth(date, step) {
+interface DayInfo {
+  d: Date;
+  disabled: boolean;
+  active: boolean;
+}
+
+function addMonth(date: Date, step: number): void {
   date.setMonth(date.getMonth() + step);
 }
 
-function weekday(date, index) {
+function weekday(date: Date, index: number): Date {
   const d = new Date(date);
   d.setDate(index - date.getDay() + 1);
   return d;
 }
 
-function monthDays(year, month, cdate) {
+function monthDays(year: number, month: number, cdate: Date): DayInfo[][] {
   // the first day of month
   const startDate = new Date(year, month, 1, 23, 59, 59);
-  const datess = [[], [], [], [], [], []];
+  const datess: DayInfo[][] = [[], [], [], [], [], []];
   for (let i = 0; i < 6; i += 1) {
     for (let j = 0; j < 7; j += 1) {
       const index = i * 7 + j;
       const d = weekday(startDate, index);
       const disabled = d.getMonth() !== month;
-      // console.log('d:', d, ', cdate:', cdate);
       const active = d.getMonth() === cdate.getMonth() && d.getDate() === cdate.getDate();
       datess[i][j] = { d, disabled, active };
     }
@@ -30,7 +35,14 @@ function monthDays(year, month, cdate) {
 }
 
 export default class Calendar {
-  constructor(value) {
+  value: Date;
+  cvalue: Date;
+  headerLeftEl: Element;
+  bodyEl: Element;
+  el: Element;
+  selectChange: (date: Date) => void;
+
+  constructor(value: Date) {
     this.value = value;
     this.cvalue = new Date(value);
 
@@ -53,7 +65,7 @@ export default class Calendar {
         h('table', 'calendar-body').children(
           h('thead', '').child(
             h('tr', '').children(
-              ...t('calendar.weeks').map(week => h('th', 'cell').child(week)),
+              ...(t('calendar.weeks') as string[]).map(week => h('th', 'cell').child(week)),
             ),
           ),
           this.bodyEl,
@@ -62,35 +74,35 @@ export default class Calendar {
     this.selectChange = () => {};
   }
 
-  setValue(value) {
+  setValue(value: Date): void {
     this.value = value;
     this.cvalue = new Date(value);
     this.buildAll();
   }
 
-  prev() {
+  prev(): void {
     const { value } = this;
     addMonth(value, -1);
     this.buildAll();
   }
 
-  next() {
+  next(): void {
     const { value } = this;
     addMonth(value, 1);
     this.buildAll();
   }
 
-  buildAll() {
+  buildAll(): void {
     this.buildHeaderLeft();
     this.buildBody();
   }
 
-  buildHeaderLeft() {
+  buildHeaderLeft(): void {
     const { value } = this;
-    this.headerLeftEl.html(`${t('calendar.months')[value.getMonth()]} ${value.getFullYear()}`);
+    this.headerLeftEl.html(`${(t('calendar.months') as string[])[value.getMonth()]} ${value.getFullYear()}`);
   }
 
-  buildBody() {
+  buildBody(): void {
     const { value, cvalue, bodyEl } = this;
     const mDays = monthDays(value.getFullYear(), value.getMonth(), cvalue);
     const trs = mDays.map((it) => {

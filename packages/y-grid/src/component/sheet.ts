@@ -1,5 +1,4 @@
-/* global window */
-import { h } from './element';
+import { Element, h } from './element';
 import {
   bind,
   mouseMoveUp,
@@ -20,26 +19,106 @@ import { xtoast } from './message';
 import { cssPrefix } from '../config';
 import { formulas } from '../core/formula';
 
+interface DataProxy {
+  settings: {
+    view: { width: number; height: number };
+    showToolbar: boolean;
+    showContextmenu: boolean;
+    mode?: string;
+  };
+  rows: {
+    height: number;
+    len: number;
+    getHeight: (ri: number) => number;
+    setHeight: (ri: number, height: number) => void;
+    isHide: (ri: number) => boolean;
+    totalHeight: () => number;
+    getCell: (ri: number, ci: number) => unknown;
+  };
+  cols: {
+    indexWidth: number;
+    minWidth: number;
+    len: number;
+    getWidth: (ci: number) => number;
+    setWidth: (ci: number, width: number) => void;
+    isHide: (ci: number) => boolean;
+    totalWidth: () => number;
+  };
+  scroll: { ri: number; ci: number; x: number; y: number };
+  selector: { ri: number; ci: number; range: { sri: number; sci: number; eri: number; eci: number }; multiple: () => boolean };
+  freeze: [number, number];
+  clipboard: { isClear: () => boolean };
+  autoFilter: {
+    includes: (ri: number, ci: number) => boolean;
+    items: (ci: number, fn: (r: number, c: number) => unknown) => Record<string, number>;
+    getFilter: (ci: number) => unknown;
+    getSort: (ci: number) => unknown;
+  };
+  viewWidth: () => number;
+  viewHeight: () => number;
+  freezeTotalWidth: () => number;
+  freezeTotalHeight: () => number;
+  getSelectedRect: () => { l: number; t: number; left: number; top: number; width: number; height: number };
+  getCellRectByXY: (x: number, y: number) => { ri: number; ci: number; left: number; top: number; width: number; height: number };
+  xyInSelectedRect: (x: number, y: number) => boolean;
+  getCell: (ri: number, ci: number) => unknown;
+  getSelectedCell: () => unknown;
+  getSelectedValidator: () => unknown;
+  getSelectedValidation: () => unknown;
+  exceptRowTotalHeight: (start: number, end: number) => number;
+  calSelectedRangeByStart: (ri: number, ci: number) => unknown;
+  calSelectedRangeByEnd: (ri: number, ci: number) => unknown;
+  scrolly: (distance: number, cb: () => void) => void;
+  scrollx: (distance: number, cb: () => void) => void;
+  setFreeze: (ri: number, ci: number) => void;
+  setData: (data: unknown) => void;
+  setSelectedCellText: (text: string, state: string) => void;
+  setSelectedCellAttr: (type: string, value: unknown) => void;
+  setAutoFilter: (ci: number, order: string | null, operator: string, value: string[]) => void;
+  copy: () => void;
+  copyToSystemClipboard: (evt: Event) => void;
+  cut: () => void;
+  paste: (what: string, msgFn: (msg: string) => void) => boolean;
+  pasteFromText: (text: string) => void;
+  pasteFromSystemClipboard: (resetFn: () => void, eventFn: (rows: unknown) => void) => void;
+  clearClipboard: () => void;
+  autofill: (range: unknown, what: string, msgFn: (msg: string) => void) => boolean;
+  insert: (type: string) => void;
+  delete: (type: string) => void;
+  deleteCell: (type?: string) => void;
+  hideRowsOrCols: () => void;
+  unhideRowsOrCols: (type: string, index: number) => void;
+  autofilter: () => void;
+  undo: () => void;
+  redo: () => void;
+  addValidation: (...args: unknown[]) => void;
+  removeValidation: () => void;
+}
+
+interface EventEmitter {
+  on: (eventName: string, callback: (...args: unknown[]) => void) => void;
+  fire: (eventName: string, args: unknown[]) => void;
+}
+
 /**
  * @desc throttle fn
  * @param func function
  * @param wait Delay in milliseconds
  */
-function throttle(func, wait) {
-  let timeout;
-  return (...arg) => {
-    const that = this;
+function throttle(func: (...args: unknown[]) => void, wait: number): (...args: unknown[]) => void {
+  let timeout: ReturnType<typeof setTimeout> | null;
+  return (...arg: unknown[]) => {
     const args = arg;
     if (!timeout) {
       timeout = setTimeout(() => {
         timeout = null;
-        func.apply(that, args);
+        func.apply(null, args);
       }, wait);
     }
   };
 }
 
-function scrollbarMove() {
+function scrollbarMove(this: Sheet): void {
   const {
     data, verticalScrollbar, horizontalScrollbar,
   } = this;
@@ -47,7 +126,6 @@ function scrollbarMove() {
     l, t, left, top, width, height,
   } = data.getSelectedRect();
   const tableOffset = this.getTableOffset();
-  // console.log(',l:', l, ', left:', left, ', tOffset.left:', tableOffset.width);
   if (Math.abs(left) + width > tableOffset.width) {
     horizontalScrollbar.move({ left: l + width - tableOffset.width });
   } else {
@@ -56,7 +134,6 @@ function scrollbarMove() {
       horizontalScrollbar.move({ left: l - 1 - fsw });
     }
   }
-  // console.log('top:', top, ', height:', height, ', tof.height:', tableOffset.height);
   if (Math.abs(top) + height > tableOffset.height) {
     verticalScrollbar.move({ top: t + height - tableOffset.height - 1 });
   } else {
@@ -67,7 +144,7 @@ function scrollbarMove() {
   }
 }
 
-function selectorSet(multiple, ri, ci, indexesUpdated = true, moving = false) {
+function selectorSet(this: Sheet, multiple: boolean, ri: number, ci: number, indexesUpdated: boolean = true, moving: boolean = false): void {
   if (ri === -1 && ci === -1) return;
   const {
     table, selector, toolbar, data,
@@ -78,7 +155,6 @@ function selectorSet(multiple, ri, ci, indexesUpdated = true, moving = false) {
     selector.setEnd(ri, ci, moving);
     this.trigger('cells-selected', cell, selector.range);
   } else {
-    // trigger click event
     selector.set(ri, ci, indexesUpdated);
     this.trigger('cell-selected', cell, ri, ci);
   }
@@ -87,19 +163,16 @@ function selectorSet(multiple, ri, ci, indexesUpdated = true, moving = false) {
   table.render();
 }
 
-// multiple: boolean
-// direction: left | right | up | down | row-first | row-last | col-first | col-last
-function selectorMove(multiple, direction) {
+function selectorMove(this: Sheet, multiple: boolean, direction: string): void {
   const {
     selector, data,
   } = this;
   const { rows, cols } = data;
-  let [ri, ci] = selector.indexes;
-  const { eri, eci } = selector.range;
+  let [ri, ci] = selector.indexes!;
+  const { eri, eci } = selector.range!;
   if (multiple) {
-    [ri, ci] = selector.moveIndexes;
+    [ri, ci] = selector.moveIndexes!;
   }
-  // console.log('selector.move:', ri, ci);
   if (direction === 'left') {
     if (ci > 0) ci -= 1;
   } else if (direction === 'right') {
@@ -126,11 +199,9 @@ function selectorMove(multiple, direction) {
   scrollbarMove.call(this);
 }
 
-// private methods
-function overlayerMousemove(evt) {
-  // console.log('x:', evt.offsetX, ', y:', evt.offsetY);
+function overlayerMousemove(this: Sheet, evt: MouseEvent): void {
   if (evt.buttons !== 0) return;
-  if (evt.target.className === `${cssPrefix}-resizer-hover`) return;
+  if ((evt.target as HTMLElement).className === `${cssPrefix}-resizer-hover`) return;
   const { offsetX, offsetY } = evt;
   const {
     rowResizer, colResizer, tableEl, data,
@@ -144,9 +215,10 @@ function overlayerMousemove(evt) {
   const tRect = tableEl.box();
   const cRect = data.getCellRectByXY(evt.offsetX, evt.offsetY);
   if (cRect.ri >= 0 && cRect.ci === -1) {
-    cRect.width = cols.indexWidth;
-    rowResizer.show(cRect, {
+    (cRect as { width: number }).width = cols.indexWidth;
+    rowResizer.show(cRect as { left: number; top: number; width: number; height: number }, {
       width: tRect.width,
+      height: 0,
     });
     if (rows.isHide(cRect.ri - 1)) {
       rowResizer.showUnhide(cRect.ri);
@@ -157,9 +229,10 @@ function overlayerMousemove(evt) {
     rowResizer.hide();
   }
   if (cRect.ri === -1 && cRect.ci >= 0) {
-    cRect.height = rows.height;
-    colResizer.show(cRect, {
+    (cRect as { height: number }).height = rows.height;
+    colResizer.show(cRect as { left: number; top: number; width: number; height: number }, {
       height: tRect.height,
+      width: 0,
     });
     if (cols.isHide(cRect.ci - 1)) {
       colResizer.showUnhide(cRect.ci);
@@ -171,22 +244,14 @@ function overlayerMousemove(evt) {
   }
 }
 
-// let scrollThreshold = 15;
-function overlayerMousescroll(evt) {
-  // scrollThreshold -= 1;
-  // if (scrollThreshold > 0) return;
-  // scrollThreshold = 15;
-
+function overlayerMousescroll(this: Sheet, evt: WheelEvent): void {
   const { verticalScrollbar, horizontalScrollbar, data } = this;
   const { top } = verticalScrollbar.scroll();
   const { left } = horizontalScrollbar.scroll();
-  // console.log('evt:::', evt.wheelDelta, evt.detail * 40);
 
   const { rows, cols } = data;
-
-  // deltaY for vertical delta
   const { deltaY, deltaX } = evt;
-  const loopValue = (ii, vFunc) => {
+  const loopValue = (ii: number, vFunc: (i: number) => number): number => {
     let i = ii;
     let v = 0;
     do {
@@ -195,75 +260,67 @@ function overlayerMousescroll(evt) {
     } while (v <= 0);
     return v;
   };
-  // console.log('deltaX', deltaX, 'evt.detail', evt.detail);
-  // if (evt.detail) deltaY = evt.detail * 40;
-  const moveY = (vertical) => {
+
+  const moveY = (vertical: number): void => {
     if (vertical > 0) {
-      // up
       const ri = data.scroll.ri + 1;
       if (ri < rows.len) {
         const rh = loopValue(ri, i => rows.getHeight(i));
-        verticalScrollbar.move({ top: top + rh - 1 });
+        verticalScrollbar.move({ top: (top || 0) + rh - 1 });
       }
     } else {
-      // down
       const ri = data.scroll.ri - 1;
       if (ri >= 0) {
         const rh = loopValue(ri, i => rows.getHeight(i));
-        verticalScrollbar.move({ top: ri === 0 ? 0 : top - rh });
+        verticalScrollbar.move({ top: ri === 0 ? 0 : (top || 0) - rh });
       }
     }
   };
 
-  // deltaX for Mac horizontal scroll
-  const moveX = (horizontal) => {
+  const moveX = (horizontal: number): void => {
     if (horizontal > 0) {
-      // left
       const ci = data.scroll.ci + 1;
       if (ci < cols.len) {
         const cw = loopValue(ci, i => cols.getWidth(i));
-        horizontalScrollbar.move({ left: left + cw - 1 });
+        horizontalScrollbar.move({ left: (left || 0) + cw - 1 });
       }
     } else {
-      // right
       const ci = data.scroll.ci - 1;
       if (ci >= 0) {
         const cw = loopValue(ci, i => cols.getWidth(i));
-        horizontalScrollbar.move({ left: ci === 0 ? 0 : left - cw });
+        horizontalScrollbar.move({ left: ci === 0 ? 0 : (left || 0) - cw });
       }
     }
   };
+
   const tempY = Math.abs(deltaY);
   const tempX = Math.abs(deltaX);
   const temp = Math.max(tempY, tempX);
-  // console.log('event:', evt);
-  // detail for windows/mac firefox vertical scroll
-  if (/Firefox/i.test(window.navigator.userAgent)) throttle(moveY(evt.detail), 50);
-  if (temp === tempX) throttle(moveX(deltaX), 50);
-  if (temp === tempY) throttle(moveY(deltaY), 50);
+  if (/Firefox/i.test(window.navigator.userAgent)) throttle(() => moveY((evt as unknown as { detail: number }).detail), 50);
+  if (temp === tempX) throttle(() => moveX(deltaX), 50);
+  if (temp === tempY) throttle(() => moveY(deltaY), 50);
 }
 
-function overlayerTouch(direction, distance) {
+function overlayerTouch(this: Sheet, direction: string, distance: number): void {
   const { verticalScrollbar, horizontalScrollbar } = this;
   const { top } = verticalScrollbar.scroll();
   const { left } = horizontalScrollbar.scroll();
 
   if (direction === 'left' || direction === 'right') {
-    horizontalScrollbar.move({ left: left - distance });
+    horizontalScrollbar.move({ left: (left || 0) - distance });
   } else if (direction === 'up' || direction === 'down') {
-    verticalScrollbar.move({ top: top - distance });
+    verticalScrollbar.move({ top: (top || 0) - distance });
   }
 }
 
-function verticalScrollbarSet() {
+function verticalScrollbarSet(this: Sheet): void {
   const { data, verticalScrollbar } = this;
   const { height } = this.getTableOffset();
   const erth = data.exceptRowTotalHeight(0, -1);
-  // console.log('erth:', erth);
   verticalScrollbar.set(height, data.rows.totalHeight() - erth);
 }
 
-function horizontalScrollbarSet() {
+function horizontalScrollbarSet(this: Sheet): void {
   const { data, horizontalScrollbar } = this;
   const { width } = this.getTableOffset();
   if (data) {
@@ -271,7 +328,7 @@ function horizontalScrollbarSet() {
   }
 }
 
-function sheetFreeze() {
+function sheetFreeze(this: Sheet): void {
   const {
     selector, data, editor,
   } = this;
@@ -284,7 +341,7 @@ function sheetFreeze() {
   selector.resetAreaOffset();
 }
 
-function sheetReset() {
+function sheetReset(this: Sheet): void {
   const {
     tableEl,
     overlayerEl,
@@ -296,7 +353,7 @@ function sheetReset() {
   } = this;
   const tOffset = this.getTableOffset();
   const vRect = this.getRect();
-  tableEl.attr(vRect);
+  tableEl.attr({ width: String(vRect.width), height: String(vRect.height) });
   overlayerEl.offset(vRect);
   overlayerCEl.offset(tOffset);
   el.css('width', `${vRect.width}px`);
@@ -308,64 +365,62 @@ function sheetReset() {
   selector.reset();
 }
 
-function clearClipboard() {
+function clearClipboard(this: Sheet): void {
   const { data, selector } = this;
   data.clearClipboard();
   selector.hideClipboard();
 }
 
-function copy(evt) {
+function copy(this: Sheet, evt?: Event): void {
   const { data, selector } = this;
   if (data.settings.mode === 'read') return;
   data.copy();
-  data.copyToSystemClipboard(evt);
+  if (evt) data.copyToSystemClipboard(evt);
   selector.showClipboard();
 }
 
-function cut() {
+function cut(this: Sheet): void {
   const { data, selector } = this;
   if (data.settings.mode === 'read') return;
   data.cut();
   selector.showClipboard();
 }
 
-function paste(what, evt) {
+function paste(this: Sheet, what: string, evt?: ClipboardEvent): void {
   const { data } = this;
   if (data.settings.mode === 'read') return;
   if (data.clipboard.isClear()) {
     const resetSheet = () => sheetReset.call(this);
-    const eventTrigger = (rows) => {
+    const eventTrigger = (rows: unknown) => {
       this.trigger('pasted-clipboard', rows);
     };
-    // pastFromSystemClipboard is async operation, need to tell it how to reset sheet and trigger event after it finishes
-    // pasting content from system clipboard
     data.pasteFromSystemClipboard(resetSheet, eventTrigger);
   } else if (data.paste(what, msg => xtoast('Tip', msg))) {
     sheetReset.call(this);
   } else if (evt) {
-    const cdata = evt.clipboardData.getData('text/plain');
+    const cdata = evt.clipboardData!.getData('text/plain');
     this.data.pasteFromText(cdata);
     sheetReset.call(this);
   }
 }
 
-function hideRowsOrCols() {
+function hideRowsOrCols(this: Sheet): void {
   this.data.hideRowsOrCols();
   sheetReset.call(this);
 }
 
-function unhideRowsOrCols(type, index) {
+function unhideRowsOrCols(this: Sheet, type: string, index: number): void {
   this.data.unhideRowsOrCols(type, index);
   sheetReset.call(this);
 }
 
-function autofilter() {
+function autofilter(this: Sheet): void {
   const { data } = this;
   data.autofilter();
   sheetReset.call(this);
 }
 
-function toolbarChangePaintformatPaste() {
+function toolbarChangePaintformatPaste(this: Sheet): void {
   const { toolbar } = this;
   if (toolbar.paintformatActive()) {
     paste.call(this, 'format');
@@ -374,43 +429,36 @@ function toolbarChangePaintformatPaste() {
   }
 }
 
-function overlayerMousedown(evt) {
-  // console.log(':::::overlayer.mousedown:', evt.detail, evt.button, evt.buttons, evt.shiftKey);
-  // console.log('evt.target.className:', evt.target.className);
+function overlayerMousedown(this: Sheet, evt: MouseEvent): void {
   const {
     selector, data, table, sortFilter,
   } = this;
   const { offsetX, offsetY } = evt;
-  const isAutofillEl = evt.target.className === `${cssPrefix}-selector-corner`;
+  const isAutofillEl = (evt.target as HTMLElement).className === `${cssPrefix}-selector-corner`;
   const cellRect = data.getCellRectByXY(offsetX, offsetY);
   const {
     left, top, width, height,
   } = cellRect;
   let { ri, ci } = cellRect;
-  // sort or filter
   const { autoFilter } = data;
   if (autoFilter.includes(ri, ci)) {
     if (left + width - 20 < offsetX && top + height - 20 < offsetY) {
       const items = autoFilter.items(ci, (r, c) => data.rows.getCell(r, c));
       sortFilter.hide();
-      sortFilter.set(ci, items, autoFilter.getFilter(ci), autoFilter.getSort(ci));
+      sortFilter.set(ci, items, autoFilter.getFilter(ci) as { value: string[] } | null, autoFilter.getSort(ci) as { order: string; asc: () => boolean; desc: () => boolean } | null);
       sortFilter.setOffset({ left, top: top + height + 2 });
       return;
     }
   }
 
-  // console.log('ri:', ri, ', ci:', ci);
   if (!evt.shiftKey) {
-    // console.log('selectorSetStart:::');
     if (isAutofillEl) {
       selector.showAutofill(ri, ci);
     } else {
       selectorSet.call(this, false, ri, ci);
     }
 
-    // mouse move up
-    mouseMoveUp(window, (e) => {
-      // console.log('mouseMoveUp::::');
+    mouseMoveUp(window, (e: MouseEvent) => {
       ({ ri, ci } = data.getCellRectByXY(e.offsetX, e.offsetY));
       if (isAutofillEl) {
         selector.showAutofill(ri, ci);
@@ -430,33 +478,31 @@ function overlayerMousedown(evt) {
 
   if (!isAutofillEl && evt.buttons === 1) {
     if (evt.shiftKey) {
-      // console.log('shiftKey::::');
       selectorSet.call(this, true, ri, ci);
     }
   }
 }
 
-function editorSetOffset() {
+function editorSetOffset(this: Sheet): void {
   const { editor, data } = this;
   const sOffset = data.getSelectedRect();
   const tOffset = this.getTableOffset();
   let sPosition = 'top';
-  // console.log('sOffset:', sOffset, ':', tOffset);
   if (sOffset.top > tOffset.height / 2) {
     sPosition = 'bottom';
   }
   editor.setOffset(sOffset, sPosition);
 }
 
-function editorSet() {
+function editorSet(this: Sheet): void {
   const { editor, data } = this;
   if (data.settings.mode === 'read') return;
   editorSetOffset.call(this);
-  editor.setCell(data.getSelectedCell(), data.getSelectedValidator());
+  editor.setCell(data.getSelectedCell() as { text?: string; editable?: boolean } | null, data.getSelectedValidator() as { type: string; values?: () => { key: string }[] } | undefined);
   clearClipboard.call(this);
 }
 
-function verticalScrollbarMove(distance) {
+function verticalScrollbarMove(this: Sheet, distance: number): void {
   const { data, table, selector } = this;
   data.scrolly(distance, () => {
     selector.resetBRLAreaOffset();
@@ -465,7 +511,7 @@ function verticalScrollbarMove(distance) {
   });
 }
 
-function horizontalScrollbarMove(distance) {
+function horizontalScrollbarMove(this: Sheet, distance: number): void {
   const { data, table, selector } = this;
   data.scrollx(distance, () => {
     selector.resetBRTAreaOffset();
@@ -474,10 +520,10 @@ function horizontalScrollbarMove(distance) {
   });
 }
 
-function rowResizerFinished(cRect, distance) {
+function rowResizerFinished(this: Sheet, cRect: { ri: number }, distance: number): void {
   const { ri } = cRect;
   const { table, selector, data } = this;
-  const { sri, eri } = selector.range;
+  const { sri, eri } = selector.range!;
   if (ri >= sri && ri <= eri) {
     for (let row = sri; row <= eri; row += 1) {
       data.rows.setHeight(row, distance);
@@ -492,10 +538,10 @@ function rowResizerFinished(cRect, distance) {
   editorSetOffset.call(this);
 }
 
-function colResizerFinished(cRect, distance) {
+function colResizerFinished(this: Sheet, cRect: { ci: number }, distance: number): void {
   const { ci } = cRect;
   const { table, selector, data } = this;
-  const { sci, eci } = selector.range;
+  const { sci, eci } = selector.range!;
   if (ci >= sci && ci <= eci) {
     for (let col = sci; col <= eci; col += 1) {
       data.cols.setWidth(col, distance);
@@ -510,9 +556,8 @@ function colResizerFinished(cRect, distance) {
   editorSetOffset.call(this);
 }
 
-function dataSetCellText(text, state = 'finished') {
+function dataSetCellText(this: Sheet, text: string, state: string = 'finished'): void {
   const { data, table } = this;
-  // const [ri, ci] = selector.indexes;
   if (data.settings.mode === 'read') return;
   data.setSelectedCellText(text, state);
   const { ri, ci } = data.selector;
@@ -523,7 +568,7 @@ function dataSetCellText(text, state = 'finished') {
   }
 }
 
-function insertDeleteRowColumn(type) {
+function insertDeleteRowColumn(this: Sheet, type: string): void {
   const { data } = this;
   if (data.settings.mode === 'read') return;
   if (type === 'insert-row') {
@@ -553,7 +598,7 @@ function insertDeleteRowColumn(type) {
   sheetReset.call(this);
 }
 
-function toolbarChange(type, value) {
+function toolbarChange(this: Sheet, type: string, value: unknown): void {
   const { data } = this;
   if (type === 'undo') {
     this.undo();
@@ -571,7 +616,6 @@ function toolbarChange(type, value) {
   } else if (type === 'chart') {
     // chart
   } else if (type === 'autofilter') {
-    // filter
     autofilter.call(this);
   } else if (type === 'freeze') {
     if (value) {
@@ -589,13 +633,12 @@ function toolbarChange(type, value) {
   }
 }
 
-function sortFilterChange(ci, order, operator, value) {
-  // console.log('sort:', sortDesc, operator, value);
+function sortFilterChange(this: Sheet, ci: number, order: string | null, operator: string, value: string[]): void {
   this.data.setAutoFilter(ci, order, operator, value);
   sheetReset.call(this);
 }
 
-function sheetInitEvents() {
+function sheetInitEvents(this: Sheet): void {
   const {
     selector,
     overlayerEl,
@@ -609,95 +652,81 @@ function sheetInitEvents() {
     modalValidation,
     sortFilter,
   } = this;
-  // overlayer
   overlayerEl
     .on('mousemove', (evt) => {
-      overlayerMousemove.call(this, evt);
+      overlayerMousemove.call(this, evt as MouseEvent);
     })
     .on('mousedown', (evt) => {
       editor.clear();
       contextMenu.hide();
-      // the left mouse button: mousedown → mouseup → click
-      // the right mouse button: mousedown → contenxtmenu → mouseup
-      if (evt.buttons === 2) {
-        if (this.data.xyInSelectedRect(evt.offsetX, evt.offsetY)) {
-          contextMenu.setPosition(evt.offsetX, evt.offsetY);
+      if ((evt as MouseEvent).buttons === 2) {
+        if (this.data.xyInSelectedRect((evt as MouseEvent).offsetX, (evt as MouseEvent).offsetY)) {
+          contextMenu.setPosition((evt as MouseEvent).offsetX, (evt as MouseEvent).offsetY);
         } else {
-          overlayerMousedown.call(this, evt);
-          contextMenu.setPosition(evt.offsetX, evt.offsetY);
+          overlayerMousedown.call(this, evt as MouseEvent);
+          contextMenu.setPosition((evt as MouseEvent).offsetX, (evt as MouseEvent).offsetY);
         }
         evt.stopPropagation();
-      } else if (evt.detail === 2) {
+      } else if ((evt as MouseEvent).detail === 2) {
         editorSet.call(this);
       } else {
-        overlayerMousedown.call(this, evt);
+        overlayerMousedown.call(this, evt as MouseEvent);
       }
     })
     .on('mousewheel.stop', (evt) => {
-      overlayerMousescroll.call(this, evt);
+      overlayerMousescroll.call(this, evt as WheelEvent);
     })
     .on('mouseout', (evt) => {
-      const { offsetX, offsetY } = evt;
+      const { offsetX, offsetY } = evt as MouseEvent;
       if (offsetY <= 0) colResizer.hide();
       if (offsetX <= 0) rowResizer.hide();
     });
 
-  selector.inputChange = (v) => {
+  selector.inputChange = (v: string) => {
     dataSetCellText.call(this, v, 'input');
     editorSet.call(this);
   };
 
-  // slide on mobile
   bindTouch(overlayerEl.el, {
     move: (direction, d) => {
       overlayerTouch.call(this, direction, d);
     },
   });
 
-  // toolbar change
-  toolbar.change = (type, value) => toolbarChange.call(this, type, value);
+  toolbar.change = (type: string, value: unknown) => toolbarChange.call(this, type, value);
+  sortFilter.ok = (ci: number, order: string | null, o: string, v: string[]) => sortFilterChange.call(this, ci, order, o, v);
 
-  // sort filter ok
-  sortFilter.ok = (ci, order, o, v) => sortFilterChange.call(this, ci, order, o, v);
-
-  // resizer finished callback
   rowResizer.finishedFn = (cRect, distance) => {
-    rowResizerFinished.call(this, cRect, distance);
+    rowResizerFinished.call(this, cRect as { ri: number }, distance);
   };
   colResizer.finishedFn = (cRect, distance) => {
-    colResizerFinished.call(this, cRect, distance);
+    colResizerFinished.call(this, cRect as { ci: number }, distance);
   };
-  // resizer unhide callback
-  rowResizer.unhideFn = (index) => {
+  rowResizer.unhideFn = (index: number) => {
     unhideRowsOrCols.call(this, 'row', index);
   };
-  colResizer.unhideFn = (index) => {
+  colResizer.unhideFn = (index: number) => {
     unhideRowsOrCols.call(this, 'col', index);
   };
-  // scrollbar move callback
-  verticalScrollbar.moveFn = (distance, evt) => {
-    verticalScrollbarMove.call(this, distance, evt);
+  verticalScrollbar.moveFn = (distance) => {
+    verticalScrollbarMove.call(this, distance);
   };
-  horizontalScrollbar.moveFn = (distance, evt) => {
-    horizontalScrollbarMove.call(this, distance, evt);
+  horizontalScrollbar.moveFn = (distance) => {
+    horizontalScrollbarMove.call(this, distance);
   };
-  // editor
-  editor.change = (state, itext) => {
-    dataSetCellText.call(this, itext, state);
+  editor.change = (state: string, itext?: string) => {
+    dataSetCellText.call(this, itext || '', state);
   };
-  // modal validation
-  modalValidation.change = (action, ...args) => {
+  modalValidation.change = (action: string, ...args: unknown[]) => {
     if (action === 'save') {
       this.data.addValidation(...args);
     } else {
       this.data.removeValidation();
     }
   };
-  // contextmenu
-  contextMenu.itemClick = (type) => {
-    // console.log('type:', type);
+  contextMenu.itemClick = (type: string) => {
     if (type === 'validation') {
-      modalValidation.setValue(this.data.getSelectedValidation());
+      modalValidation.setValue(this.data.getSelectedValidation() as Parameters<typeof modalValidation.setValue>[0]);
     } else if (type === 'copy') {
       copy.call(this);
     } else if (type === 'cut') {
@@ -720,12 +749,12 @@ function sheetInitEvents() {
   });
 
   bind(window, 'click', (evt) => {
-    this.focusing = overlayerEl.contains(evt.target);
+    this.focusing = overlayerEl.contains((evt as MouseEvent).target as Node);
   });
 
   bind(window, 'paste', (evt) => {
     if (!this.focusing) return;
-    paste.call(this, 'all', evt);
+    paste.call(this, 'all', evt as ClipboardEvent);
     evt.preventDefault();
   });
 
@@ -735,131 +764,101 @@ function sheetInitEvents() {
     evt.preventDefault();
   });
 
-  // for selector
   bind(window, 'keydown', (evt) => {
     if (!this.focusing) return;
-    const keyCode = evt.keyCode || evt.which;
+    const keyCode = (evt as KeyboardEvent).keyCode || (evt as KeyboardEvent).which;
     const {
       key, ctrlKey, shiftKey, metaKey,
-    } = evt;
-    // console.log('keydown.evt: ', keyCode);
+    } = evt as KeyboardEvent;
     if (ctrlKey || metaKey) {
-      // const { sIndexes, eIndexes } = selector;
-      // let what = 'all';
-      // if (shiftKey) what = 'text';
-      // if (altKey) what = 'format';
       switch (keyCode) {
         case 90:
-          // undo: ctrl + z
           this.undo();
           evt.preventDefault();
           break;
         case 89:
-          // redo: ctrl + y
           this.redo();
           evt.preventDefault();
           break;
         case 67:
-          // ctrl + c
-          // => copy
-          // copy.call(this);
-          // evt.preventDefault();
           break;
         case 88:
-          // ctrl + x
           cut.call(this);
           evt.preventDefault();
           break;
         case 85:
-          // ctrl + u
           toolbar.trigger('underline');
           evt.preventDefault();
           break;
         case 86:
-          // ctrl + v
-          // => paste
-          // evt.preventDefault();
           break;
         case 37:
-          // ctrl + left
           selectorMove.call(this, shiftKey, 'row-first');
           evt.preventDefault();
           break;
         case 38:
-          // ctrl + up
           selectorMove.call(this, shiftKey, 'col-first');
           evt.preventDefault();
           break;
         case 39:
-          // ctrl + right
           selectorMove.call(this, shiftKey, 'row-last');
           evt.preventDefault();
           break;
         case 40:
-          // ctrl + down
           selectorMove.call(this, shiftKey, 'col-last');
           evt.preventDefault();
           break;
         case 32:
-          // ctrl + space, all cells in col
           selectorSet.call(this, false, -1, this.data.selector.ci, false);
           evt.preventDefault();
           break;
         case 66:
-          // ctrl + B
           toolbar.trigger('bold');
           break;
         case 73:
-          // ctrl + I
           toolbar.trigger('italic');
           break;
         default:
           break;
       }
     } else {
-      // console.log('evt.keyCode:', evt.keyCode);
       switch (keyCode) {
         case 32:
           if (shiftKey) {
-            // shift + space, all cells in row
             selectorSet.call(this, false, this.data.selector.ri, -1, false);
           }
           break;
-        case 27: // esc
+        case 27:
           contextMenu.hide();
           clearClipboard.call(this);
           break;
-        case 37: // left
+        case 37:
           selectorMove.call(this, shiftKey, 'left');
           evt.preventDefault();
           break;
-        case 38: // up
+        case 38:
           selectorMove.call(this, shiftKey, 'up');
           evt.preventDefault();
           break;
-        case 39: // right
+        case 39:
           selectorMove.call(this, shiftKey, 'right');
           evt.preventDefault();
           break;
-        case 40: // down
+        case 40:
           selectorMove.call(this, shiftKey, 'down');
           evt.preventDefault();
           break;
-        case 9: // tab
+        case 9:
           editor.clear();
-          // shift + tab => move left
-          // tab => move right
           selectorMove.call(this, false, shiftKey ? 'left' : 'right');
           evt.preventDefault();
           break;
-        case 13: // enter
+        case 13:
           editor.clear();
-          // shift + enter => move up
-          // enter => move down
           selectorMove.call(this, false, shiftKey ? 'up' : 'down');
           evt.preventDefault();
           break;
-        case 8: // backspace
+        case 8:
           insertDeleteRowColumn.call(this, 'delete-cell-text');
           evt.preventDefault();
           break;
@@ -873,12 +872,11 @@ function sheetInitEvents() {
       } else if ((keyCode >= 65 && keyCode <= 90)
         || (keyCode >= 48 && keyCode <= 57)
         || (keyCode >= 96 && keyCode <= 105)
-        || evt.key === '='
+        || key === '='
       ) {
-        dataSetCellText.call(this, evt.key, 'input');
+        dataSetCellText.call(this, key, 'input');
         editorSet.call(this);
       } else if (keyCode === 113) {
-        // F2
         editorSet.call(this);
       }
     }
@@ -886,34 +884,47 @@ function sheetInitEvents() {
 }
 
 export default class Sheet {
-  constructor(targetEl, data) {
+  eventMap: EventEmitter;
+  el: Element;
+  toolbar: Toolbar;
+  print: Print;
+  data: DataProxy;
+  tableEl: Element;
+  rowResizer: Resizer;
+  colResizer: Resizer;
+  verticalScrollbar: Scrollbar;
+  horizontalScrollbar: Scrollbar;
+  editor: Editor;
+  modalValidation: ModalValidation;
+  contextMenu: ContextMenu;
+  selector: Selector;
+  overlayerCEl: Element;
+  overlayerEl: Element;
+  sortFilter: SortFilter;
+  table: Table;
+  focusing: boolean;
+
+  constructor(targetEl: Element, data: DataProxy) {
     this.eventMap = createEventEmitter();
     const { view, showToolbar, showContextmenu } = data.settings;
     this.el = h('div', `${cssPrefix}-sheet`);
-    this.toolbar = new Toolbar(data, view.width, !showToolbar);
-    this.print = new Print(data);
+    this.toolbar = new Toolbar(data as unknown as ConstructorParameters<typeof Toolbar>[0], () => view.width, !showToolbar);
+    this.print = new Print(data as unknown as ConstructorParameters<typeof Print>[0]);
     targetEl.children(this.toolbar.el, this.el, this.print.el);
     this.data = data;
-    // table
     this.tableEl = h('canvas', `${cssPrefix}-table`);
-    // resizer
     this.rowResizer = new Resizer(false, data.rows.height);
     this.colResizer = new Resizer(true, data.cols.minWidth);
-    // scrollbar
     this.verticalScrollbar = new Scrollbar(true);
     this.horizontalScrollbar = new Scrollbar(false);
-    // editor
     this.editor = new Editor(
-      formulas,
+      formulas as unknown as ConstructorParameters<typeof Editor>[0],
       () => this.getTableOffset(),
       data.rows.height,
     );
-    // data validation
     this.modalValidation = new ModalValidation();
-    // contextMenu
     this.contextMenu = new ContextMenu(() => this.getRect(), !showContextmenu);
-    // selector
-    this.selector = new Selector(data);
+    this.selector = new Selector(data as unknown as ConstructorParameters<typeof Selector>[0]);
     this.overlayerCEl = h('div', `${cssPrefix}-overlayer-content`)
       .children(
         this.editor.el,
@@ -921,9 +932,7 @@ export default class Sheet {
       );
     this.overlayerEl = h('div', `${cssPrefix}-overlayer`)
       .child(this.overlayerCEl);
-    // sortFilter
     this.sortFilter = new SortFilter();
-    // root element
     this.el.children(
       this.tableEl,
       this.overlayerEl.el,
@@ -935,72 +944,68 @@ export default class Sheet {
       this.modalValidation.el,
       this.sortFilter.el,
     );
-    // table
-    this.table = new Table(this.tableEl.el, data);
+    this.table = new Table(this.tableEl.el as HTMLCanvasElement, data as unknown as ConstructorParameters<typeof Table>[1]);
+    this.focusing = false;
     sheetInitEvents.call(this);
     sheetReset.call(this);
-    // init selector [0, 0]
     selectorSet.call(this, false, 0, 0);
   }
 
-  on(eventName, func) {
+  on(eventName: string, func: (...args: unknown[]) => void): this {
     this.eventMap.on(eventName, func);
     return this;
   }
 
-  trigger(eventName, ...args) {
+  trigger(eventName: string, ...args: unknown[]): void {
     const { eventMap } = this;
     eventMap.fire(eventName, args);
   }
 
-  resetData(data) {
-    // before
+  resetData(data: DataProxy): void {
     this.editor.clear();
-    // after
     this.data = data;
     verticalScrollbarSet.call(this);
     horizontalScrollbarSet.call(this);
-    this.toolbar.resetData(data);
-    this.print.resetData(data);
-    this.selector.resetData(data);
-    this.table.resetData(data);
+    this.toolbar.resetData(data as unknown as Parameters<typeof this.toolbar.resetData>[0]);
+    this.print.resetData(data as unknown as Parameters<typeof this.print.resetData>[0]);
+    this.selector.resetData(data as unknown as Parameters<typeof this.selector.resetData>[0]);
+    this.table.resetData(data as unknown as Parameters<typeof this.table.resetData>[0]);
   }
 
-  loadData(data) {
+  loadData(data: unknown): this {
     this.data.setData(data);
     sheetReset.call(this);
     return this;
   }
 
-  // freeze rows or cols
-  freeze(ri, ci) {
+  freeze(ri: number, ci: number): this {
     const { data } = this;
     data.setFreeze(ri, ci);
     sheetReset.call(this);
     return this;
   }
 
-  undo() {
+  undo(): void {
     this.data.undo();
     sheetReset.call(this);
   }
 
-  redo() {
+  redo(): void {
     this.data.redo();
     sheetReset.call(this);
   }
 
-  reload() {
+  reload(): this {
     sheetReset.call(this);
     return this;
   }
 
-  getRect() {
+  getRect(): { width: number; height: number } {
     const { data } = this;
     return { width: data.viewWidth(), height: data.viewHeight() };
   }
 
-  getTableOffset() {
+  getTableOffset(): { width: number; height: number; left: number; top: number } {
     const { rows, cols } = this.data;
     const { width, height } = this.getRect();
     return {

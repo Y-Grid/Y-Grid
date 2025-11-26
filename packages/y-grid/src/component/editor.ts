@@ -1,11 +1,36 @@
-//* global window */
-import { h } from './element';
-import Suggest from './suggest';
+import { Element, h, Offset } from './element';
+import Suggest, { SuggestItem } from './suggest';
 import Datepicker from './datepicker';
 import { cssPrefix } from '../config';
-// import { mouseMoveUp } from '../event';
 
-function resetTextareaSize() {
+interface CellData {
+  text?: string;
+  editable?: boolean;
+}
+
+interface Validator {
+  type: string;
+  values?: () => SuggestItem[];
+}
+
+interface ViewDimensions {
+  width: number;
+  height: number;
+}
+
+interface EditorOffset extends Offset {
+  l?: number;
+  t?: number;
+}
+
+interface Freeze {
+  w: number;
+  h: number;
+}
+
+type ChangeCallback = (action: string, value?: string) => void;
+
+function resetTextareaSize(this: Editor): void {
   const { inputText } = this;
   if (!/^\s*$/.test(inputText)) {
     const {
@@ -13,28 +38,29 @@ function resetTextareaSize() {
     } = this;
     const txts = inputText.split('\n');
     const maxTxtSize = Math.max(...txts.map(it => it.length));
-    const tlOffset = textlineEl.offset();
-    const fontWidth = tlOffset.width / inputText.length;
+    const tlOffset = textlineEl.offset() as Offset;
+    const fontWidth = (tlOffset.width || 0) / inputText.length;
     const tlineWidth = (maxTxtSize + 1) * fontWidth + 5;
-    const maxWidth = this.viewFn().width - areaOffset.left - fontWidth;
+    const maxWidth = this.viewFn().width - (areaOffset?.left || 0) - fontWidth;
     let h1 = txts.length;
-    if (tlineWidth > areaOffset.width) {
+    if (tlineWidth > (areaOffset?.width || 0)) {
       let twidth = tlineWidth;
       if (tlineWidth > maxWidth) {
         twidth = maxWidth;
-        h1 += parseInt(tlineWidth / maxWidth, 10);
+        h1 += parseInt(String(tlineWidth / maxWidth), 10);
         h1 += (tlineWidth % maxWidth) > 0 ? 1 : 0;
       }
       textEl.css('width', `${twidth}px`);
     }
     h1 *= this.rowHeight;
-    if (h1 > areaOffset.height) {
+    if (h1 > (areaOffset?.height || 0)) {
       textEl.css('height', `${h1}px`);
     }
   }
 }
 
-function insertText({ target }, itxt) {
+function insertText(this: Editor, evt: Event, itxt: string): void {
+  const target = evt.target as HTMLTextAreaElement;
   const { value, selectionEnd } = target;
   const ntxt = `${value.slice(0, selectionEnd)}${itxt}${value.slice(selectionEnd)}`;
   target.value = ntxt;
@@ -45,7 +71,7 @@ function insertText({ target }, itxt) {
   resetTextareaSize.call(this);
 }
 
-function keydownEventHandler(evt) {
+function keydownEventHandler(this: Editor, evt: KeyboardEvent): void {
   const { keyCode, altKey } = evt;
   if (keyCode !== 13 && keyCode !== 9) evt.stopPropagation();
   if (keyCode === 13 && altKey) {
@@ -55,9 +81,9 @@ function keydownEventHandler(evt) {
   if (keyCode === 13 && !altKey) evt.preventDefault();
 }
 
-function inputEventHandler(evt) {
-  const v = evt.target.value;
-  // console.log(evt, 'v:', v);
+function inputEventHandler(this: Editor, evt: Event): void {
+  const target = evt.target as HTMLTextAreaElement;
+  const v = target.value;
   const { suggest, textlineEl, validator } = this;
   const { cell } = this;
   if (cell !== null) {
@@ -81,7 +107,7 @@ function inputEventHandler(evt) {
       resetTextareaSize.call(this);
       this.change('input', v);
     } else {
-      evt.target.value = cell.text || '';
+      target.value = cell.text || '';
     }
   } else {
     this.inputText = v;
@@ -105,15 +131,15 @@ function inputEventHandler(evt) {
   }
 }
 
-function setTextareaRange(position) {
-  const { el } = this.textEl;
+function setTextareaRange(this: Editor, position: number): void {
+  const el = this.textEl.el as HTMLTextAreaElement;
   setTimeout(() => {
     el.focus();
     el.setSelectionRange(position, position);
   }, 0);
 }
 
-function setText(text, position) {
+function setText(this: Editor, text: string, position: number): void {
   const { textEl, textlineEl } = this;
   // firefox bug
   textEl.el.blur();
@@ -123,11 +149,11 @@ function setText(text, position) {
   setTextareaRange.call(this, position);
 }
 
-function suggestItemClick(it) {
+function suggestItemClick(this: Editor, it: SuggestItem | string): void {
   const { inputText, validator } = this;
   let position = 0;
   if (validator && validator.type === 'list') {
-    this.inputText = it;
+    this.inputText = typeof it === 'string' ? it : it.key;
     position = this.inputText.length;
   } else {
     const start = inputText.lastIndexOf('=');
@@ -138,28 +164,44 @@ function suggestItemClick(it) {
     } else {
       eit = '';
     }
-    this.inputText = `${sit + it.key}(`;
-    // console.log('inputText:', this.inputText);
+    const key = typeof it === 'string' ? it : it.key;
+    this.inputText = `${sit + key}(`;
     position = this.inputText.length;
     this.inputText += `)${eit}`;
   }
   setText.call(this, this.inputText, position);
 }
 
-function resetSuggestItems() {
+function resetSuggestItems(this: Editor): void {
   this.suggest.setItems(this.formulas);
 }
 
-function dateFormat(d) {
-  let month = d.getMonth() + 1;
-  let date = d.getDate();
+function dateFormat(d: Date): string {
+  let month: string | number = d.getMonth() + 1;
+  let date: string | number = d.getDate();
   if (month < 10) month = `0${month}`;
   if (date < 10) date = `0${date}`;
   return `${d.getFullYear()}-${month}-${date}`;
 }
 
 export default class Editor {
-  constructor(formulas, viewFn, rowHeight) {
+  viewFn: () => ViewDimensions;
+  rowHeight: number;
+  formulas: SuggestItem[];
+  suggest: Suggest;
+  datepicker: Datepicker;
+  areaEl: Element;
+  textEl: Element;
+  textlineEl: Element;
+  el: Element;
+  areaOffset: EditorOffset | null;
+  freeze: Freeze;
+  cell: CellData | null;
+  inputText: string;
+  change: ChangeCallback;
+  validator?: Validator;
+
+  constructor(formulas: SuggestItem[], viewFn: () => ViewDimensions, rowHeight: number) {
     this.viewFn = viewFn;
     this.rowHeight = rowHeight;
     this.formulas = formulas;
@@ -167,18 +209,19 @@ export default class Editor {
       suggestItemClick.call(this, it);
     });
     this.datepicker = new Datepicker();
-    this.datepicker.change((d) => {
-      // console.log('d:', d);
+    this.datepicker.change((d: Date) => {
       this.setText(dateFormat(d));
       this.clear();
     });
+    this.textEl = h('textarea', '')
+      .on('input', evt => inputEventHandler.call(this, evt))
+      .on('paste.stop', () => {})
+      .on('keydown', evt => keydownEventHandler.call(this, evt as KeyboardEvent));
+    this.textlineEl = h('div', 'textline');
     this.areaEl = h('div', `${cssPrefix}-editor-area`)
       .children(
-        this.textEl = h('textarea', '')
-          .on('input', evt => inputEventHandler.call(this, evt))
-          .on('paste.stop', () => {})
-          .on('keydown', evt => keydownEventHandler.call(this, evt)),
-        this.textlineEl = h('div', 'textline'),
+        this.textEl,
+        this.textlineEl,
         this.suggest.el,
         this.datepicker.el,
       )
@@ -195,14 +238,12 @@ export default class Editor {
     this.change = () => {};
   }
 
-  setFreezeLengths(width, height) {
+  setFreezeLengths(width: number, height: number): void {
     this.freeze.w = width;
     this.freeze.h = height;
   }
 
-  clear() {
-    // const { cell } = this;
-    // const cellText = (cell && cell.text) || '';
+  clear(): void {
     if (this.inputText !== '') {
       this.change('finished', this.inputText);
     }
@@ -216,7 +257,7 @@ export default class Editor {
     this.datepicker.hide();
   }
 
-  setOffset(offset, suggestPosition = 'top') {
+  setOffset(offset: EditorOffset | null, suggestPosition: string = 'top'): void {
     const {
       textEl, areaEl, suggest, freeze, el,
     } = this;
@@ -225,33 +266,31 @@ export default class Editor {
       const {
         left, top, width, height, l, t,
       } = offset;
-      // console.log('left:', left, ',top:', top, ', freeze:', freeze);
-      const elOffset = { left: 0, top: 0 };
+      const elOffset: { left: number; top: number } = { left: 0, top: 0 };
       // top left
-      if (freeze.w > l && freeze.h > t) {
+      if (freeze.w > (l || 0) && freeze.h > (t || 0)) {
         //
-      } else if (freeze.w < l && freeze.h < t) {
+      } else if (freeze.w < (l || 0) && freeze.h < (t || 0)) {
         elOffset.left = freeze.w;
         elOffset.top = freeze.h;
-      } else if (freeze.w > l) {
+      } else if (freeze.w > (l || 0)) {
         elOffset.top = freeze.h;
-      } else if (freeze.h > t) {
+      } else if (freeze.h > (t || 0)) {
         elOffset.left = freeze.w;
       }
       el.offset(elOffset);
-      areaEl.offset({ left: left - elOffset.left - 0.8, top: top - elOffset.top - 0.8 });
-      textEl.offset({ width: width - 9 + 0.8, height: height - 3 + 0.8 });
-      const sOffset = { left: 0 };
-      sOffset[suggestPosition] = height;
+      areaEl.offset({ left: (left || 0) - elOffset.left - 0.8, top: (top || 0) - elOffset.top - 0.8 });
+      textEl.offset({ width: (width || 0) - 9 + 0.8, height: (height || 0) - 3 + 0.8 });
+      const sOffset: Record<string, number> = { left: 0 };
+      sOffset[suggestPosition] = height || 0;
       suggest.setOffset(sOffset);
       suggest.hide();
     }
   }
 
-  setCell(cell, validator) {
+  setCell(cell: CellData | null, validator?: Validator): void {
     if (cell && cell.editable === false) return;
 
-    // console.log('::', validator);
     const { el, datepicker, suggest } = this;
     el.show();
     this.cell = cell;
@@ -268,15 +307,14 @@ export default class Editor {
         }
       }
       if (type === 'list') {
-        suggest.setItems(validator.values());
+        suggest.setItems(validator.values!());
         suggest.search('');
       }
     }
   }
 
-  setText(text) {
+  setText(text: string): void {
     this.inputText = text;
-    // console.log('text>>:', text);
     setText.call(this, text, text.length);
     resetTextareaSize.call(this);
   }

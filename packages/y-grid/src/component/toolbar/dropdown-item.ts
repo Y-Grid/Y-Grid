@@ -16,15 +16,14 @@ export default class DropdownItem extends Item {
   element(): Element {
     const { tag } = this;
     this.dd = this.dropdown();
-    // @ts-expect-error - Dropdown.change signature varies
     this.dd.change = (it: unknown) => this.change(tag, this.getValue(it));
-    return super.element().child(this.dd);
+    return super.element().child(this.dd.el);
   }
 
   setState(v: unknown): void {
     if (v) {
       this.value = v;
-      this.dd.setTitle(v);
+      this.dd.setTitle(String(v));
     }
   }
 }

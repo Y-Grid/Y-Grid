@@ -2,8 +2,22 @@ import { Element, h } from './element';
 import { bindClickoutside, unbindClickoutside } from './event';
 import { cssPrefix } from '../config';
 
+type ChangeCallback = (...args: unknown[]) => void;
+
 export default class Dropdown extends Element {
-  constructor(title, width, showArrow, placement, ...children) {
+  title: Element | string;
+  change: ChangeCallback;
+  headerClick: () => void;
+  contentEl: Element;
+  headerEl: Element;
+
+  constructor(
+    title: Element | string,
+    width: string,
+    showArrow: boolean,
+    placement: string,
+    ...children: Element[]
+  ) {
     super('div', `${cssPrefix}-dropdown ${placement}`);
     this.title = title;
     this.change = () => {};
@@ -11,7 +25,7 @@ export default class Dropdown extends Element {
     if (typeof title === 'string') {
       this.title = h('div', `${cssPrefix}-dropdown-title`).child(title);
     } else if (showArrow) {
-      this.title.addClass('arrow-left');
+      (this.title as Element).addClass('arrow-left');
     }
     this.contentEl = h('div', `${cssPrefix}-dropdown-content`)
       .css('width', width)
@@ -27,7 +41,7 @@ export default class Dropdown extends Element {
         this.hide();
       }
     }).children(
-      this.title,
+      this.title as Element,
       showArrow ? h('div', `${cssPrefix}-icon arrow-right`).child(
         h('div', `${cssPrefix}-icon-img arrow-down`),
       ) : '',
@@ -35,30 +49,32 @@ export default class Dropdown extends Element {
     this.children(this.headerEl, this.contentEl);
   }
 
-  setContentChildren(...children) {
+  setContentChildren(...children: Element[]): void {
     this.contentEl.html('');
     if (children.length > 0) {
       this.contentEl.children(...children);
     }
   }
 
-  setTitle(title) {
-    this.title.html(title);
+  setTitle(title: string): void {
+    (this.title as Element).html(title);
     this.hide();
   }
 
-  show() {
+  show(): this {
     const { contentEl } = this;
     contentEl.show();
     this.parent().active();
     bindClickoutside(this.parent(), () => {
       this.hide();
     });
+    return this;
   }
 
-  hide() {
+  hide(): this {
     this.parent().active(false);
     this.contentEl.hide();
     unbindClickoutside(this.parent());
+    return this;
   }
 }
