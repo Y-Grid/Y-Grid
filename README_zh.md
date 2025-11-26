@@ -1,18 +1,18 @@
 # Y-Grid
 
-A high-performance web-based grid component built with HTML5 Canvas.
+基于 HTML5 Canvas 的高性能网页表格组件。
 
-[中文](./README_zh.md) | [한국어](./README_ko.md) | [日本語](./README_ja.md) | [Español](./README_es.md)
+[English](./README.md) | [한국어](./README_ko.md) | [日本語](./README_ja.md) | [Español](./README_es.md)
 
-Forked from [x-spreadsheet](https://github.com/myliang/x-spreadsheet).
+Fork 自 [x-spreadsheet](https://github.com/myliang/x-spreadsheet)。
 
-## Installation
+## 安装
 
 ```shell
 npm install y-grid
 ```
 
-## Usage
+## 使用
 
 ```html
 <div id="y-grid"></div>
@@ -25,11 +25,11 @@ import 'y-grid/style.css';
 const grid = new YGrid('#y-grid')
   .loadData({})
   .change(data => {
-    // save data
+    // 保存数据
   });
 ```
 
-### Options
+### 配置项
 
 ```typescript
 {
@@ -69,7 +69,7 @@ const grid = new YGrid('#y-grid')
 }
 ```
 
-### Events
+### 事件
 
 ```typescript
 grid.on('cell-selected', (cell, ri, ci) => {});
@@ -77,47 +77,47 @@ grid.on('cells-selected', (cell, { sri, sci, eri, eci }) => {});
 grid.on('cell-edited', (text, ri, ci) => {});
 ```
 
-### Cell Operations
+### 单元格操作
 
 ```typescript
-// Update cell text: cellText(ri, ci, text, sheetIndex = 0)
+// 更新单元格文本: cellText(ri, ci, text, sheetIndex = 0)
 grid.cellText(5, 5, 'hello').cellText(6, 5, 'world').reRender();
 
-// Get cell: cell(ri, ci, sheetIndex = 0)
+// 获取单元格: cell(ri, ci, sheetIndex = 0)
 grid.cell(ri, ci);
 
-// Get cell style: cellStyle(ri, ci, sheetIndex = 0)
+// 获取单元格样式: cellStyle(ri, ci, sheetIndex = 0)
 grid.cellStyle(ri, ci);
 ```
 
-### CSV Import
+### CSV 导入
 
 ```typescript
-// Import from file
+// 从文件导入
 await grid.importCSV(file);
 
-// Import from text
+// 从文本导入
 grid.importCSVText('name,age\nJohn,30\nJane,25');
 ```
 
-## Features
+## 功能特性
 
-- Canvas-based rendering
-- Full TypeScript support
-- Undo & Redo
-- Copy, Cut, Paste
-- Cell formatting (font, color, borders, alignment)
-- Merge cells
-- Freeze rows/columns
-- Basic formulas (SUM, AVERAGE, MAX, MIN, IF, AND, OR, CONCAT)
-- Row/column resize, insert, delete, hide
-- Multiple sheets
-- Data validations
-- CSV import (built-in, RFC 4180 compliant)
+- Canvas 渲染
+- 完整 TypeScript 支持
+- 撤销 & 重做
+- 复制、剪切、粘贴
+- 单元格格式化（字体、颜色、边框、对齐）
+- 合并单元格
+- 冻结行/列
+- 基础公式（SUM、AVERAGE、MAX、MIN、IF、AND、OR、CONCAT）
+- 行/列调整大小、插入、删除、隐藏
+- 多工作表
+- 数据验证
+- CSV 导入（内置，符合 RFC 4180 标准）
 
-## Development
+## 开发
 
-This is a monorepo using npm workspaces, written in TypeScript.
+本项目使用 npm workspaces 的 monorepo 结构，使用 TypeScript 编写。
 
 ```shell
 git clone https://github.com/user/y-grid.git
@@ -126,22 +126,22 @@ npm install
 npm run dev
 ```
 
-Open your browser and visit http://localhost:8080.
+打开浏览器访问 http://localhost:8080。
 
-### Commands
+### 命令
 
 ```shell
-npm run dev        # Start dev server
-npm run build      # Build for production
-npm run test       # Run tests
-npm run lint       # Lint code
-npm run typecheck  # Type check
+npm run dev        # 启动开发服务器
+npm run build      # 生产构建
+npm run test       # 运行测试
+npm run lint       # 代码检查
+npm run typecheck  # 类型检查
 ```
 
-## Browser Support
+## 浏览器支持
 
-Modern browsers (Chrome, Firefox, Safari, Edge).
+现代浏览器（Chrome、Firefox、Safari、Edge）。
 
-## License
+## 许可证
 
 MIT
