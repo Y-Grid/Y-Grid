@@ -32,14 +32,14 @@ The current codebase was designed as a "looks like Excel" demo, not a performanc
 - [x] Update imports
 
 ### 1.2 Monorepo Setup
-- [ ] Create `packages/` directory
-- [ ] Move `src/` to `packages/y-grid/src/`
-- [ ] Set up pnpm workspaces
-- [ ] Create `packages/y-grid/package.json`
-- [ ] Update root `package.json` as workspace root
-- [ ] Update build scripts for multi-package
-- [ ] Move `demo/` to root level (shared)
-- [ ] Move `tests/` to `packages/y-grid/tests/`
+- [x] Create `packages/` directory
+- [x] Move `src/` to `packages/y-grid/src/`
+- [x] Set up npm workspaces
+- [x] Create `packages/y-grid/package.json`
+- [x] Update root `package.json` as workspace root
+- [x] Update build scripts for multi-package
+- [x] Keep `demo/` at root level (shared across packages)
+- [x] Move `tests/` to `packages/y-grid/tests/`
 
 ### 1.3 TypeScript Setup
 - [x] Install TypeScript

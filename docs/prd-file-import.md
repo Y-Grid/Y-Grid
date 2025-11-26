@@ -57,8 +57,7 @@ y-grid/
 │       │   └── parser.ts
 │       └── dist/
 │
-├── package.json                # Workspace root
-├── pnpm-workspace.yaml
+├── package.json                # Workspace root (npm workspaces)
 └── demo/                       # Shared demo
 ```
 
@@ -297,17 +296,16 @@ async function* parseCSVChunked(file: File): AsyncGenerator<CellValue[][]> {
 
 ## Implementation Plan
 
-### Step 0: Monorepo Setup
+### Step 0: Monorepo Setup ✅ DONE
 
-1. Create `packages/` directory
-2. Move existing `src/` to `packages/y-grid/src/`
-3. Set up pnpm workspaces (or npm workspaces)
-4. Update build scripts for multi-package
+1. ~~Create `packages/` directory~~
+2. ~~Move existing `src/` to `packages/y-grid/src/`~~
+3. ~~Set up npm workspaces~~
+4. ~~Update build scripts for multi-package~~
 
 **Files**:
-- `pnpm-workspace.yaml` (NEW)
-- `package.json` → workspace root
-- `packages/y-grid/package.json` (NEW)
+- `package.json` → workspace root with `"workspaces": ["packages/*"]`
+- `packages/y-grid/package.json`
 
 ### Step 1: Plugin System (Foundation)
 

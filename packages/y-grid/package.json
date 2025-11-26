@@ -1,0 +1,48 @@
+{
+  "name": "y-grid",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "A high performance web grid component",
+  "types": "src/index.d.ts",
+  "main": "dist/y-grid.js",
+  "module": "dist/y-grid.js",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "import": "./dist/y-grid.js",
+      "require": "./dist/y-grid.umd.cjs"
+    },
+    "./style.css": "./dist/style.css"
+  },
+  "files": [
+    "assets",
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "dev": "concurrently \"vite build --watch\" \"serve -l 8080 ../..\" \"sleep 1 && open http://localhost:8080/demo/index.html\"",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "biome check src",
+    "lint:fix": "biome check --write src",
+    "format": "biome format --write src",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "javascript",
+    "grid",
+    "spreadsheet",
+    "canvas",
+    "high-performance"
+  ],
+  "author": "myliang <liangyuliang0335@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/user/y-grid.git",
+    "directory": "packages/y-grid"
+  }
+}

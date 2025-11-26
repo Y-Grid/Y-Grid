@@ -1,39 +1,24 @@
 {
-  "name": "y-grid",
+  "name": "y-grid-monorepo",
   "version": "1.0.0",
+  "private": true,
   "type": "module",
-  "description": "a high performance web grid / spreadsheet component",
-  "types": "src/index.d.ts",
-  "main": "dist/y-grid.js",
-  "module": "dist/y-grid.js",
-  "files": [
-    "assets",
-    "dist",
-    "src"
+  "description": "y-grid monorepo",
+  "workspaces": [
+    "packages/*"
   ],
-  "author": "myliang <liangyuliang0335@gmail.com>",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/myliang/x-spreadsheet.git"
-  },
   "scripts": {
-    "dev": "concurrently \"vite build --watch\" \"serve -l 8080\" \"sleep 1 && open http://localhost:8080/demo/index.html\"",
-    "build": "vite build",
-    "preview": "vite preview",
-    "lint": "biome check src",
-    "lint:fix": "biome check --write src",
-    "format": "biome format --write src",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "coverage": "vitest run --coverage",
-    "typecheck": "tsc --noEmit"
+    "dev": "npm run dev -w y-grid",
+    "build": "npm run build -w y-grid",
+    "preview": "npm run preview -w y-grid",
+    "lint": "npm run lint -w y-grid",
+    "lint:fix": "npm run lint:fix -w y-grid",
+    "format": "npm run format -w y-grid",
+    "test": "npm run test -w y-grid",
+    "test:watch": "npm run test:watch -w y-grid",
+    "coverage": "npm run coverage -w y-grid",
+    "typecheck": "npm run typecheck -w y-grid"
   },
-  "keywords": [
-    "javascript",
-    "spreadsheet",
-    "canvas"
-  ],
   "devDependencies": {
     "@biomejs/biome": "^1.9.0",
     "@types/node": "^22.19.1",
@@ -44,5 +29,11 @@
     "typescript": "^5.9.3",
     "vite": "^5.4.0",
     "vitest": "^4.0.14"
+  },
+  "author": "myliang <liangyuliang0335@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/user/y-grid.git"
   }
 }

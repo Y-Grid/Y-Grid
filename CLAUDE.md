@@ -4,74 +4,113 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-y-grid is a web-based JavaScript spreadsheet library that renders using HTML5 Canvas. Forked from x-spreadsheet.
+y-grid is a high-performance web-based grid library that renders using HTML5 Canvas. Forked from x-spreadsheet.
+
+This is a **monorepo** using npm workspaces:
+- `packages/y-grid/` - Core grid package
+- `packages/y-grid-excel/` - Excel import plugin (planned)
 
 ## Development Commands
 
+All commands run from the repository root:
+
 ```bash
-npm install          # Install dependencies
-npm run dev          # Start Vite dev server at http://localhost:8080
-npm run build        # Production build (outputs to dist/)
-npm run preview      # Preview production build
+npm install          # Install dependencies (all packages)
+npm run dev          # Start dev server at http://localhost:8080
+npm run build        # Production build
+npm run test         # Run tests with Vitest
+npm run typecheck    # TypeScript type checking
 npm run lint         # Run Biome linter
 npm run lint:fix     # Auto-fix lint issues
 npm run format       # Format code with Biome
-npm run test         # Run tests with Vitest
 ```
 
 ### Running a single test
 
 ```bash
-npx vitest run tests/core/formula.test.js
+npm run test -- --filter="formula"
+# or directly in package
+cd packages/y-grid && npx vitest run tests/core/formula.test.js
+```
+
+### Working with specific package
+
+```bash
+npm run build -w y-grid        # Build only y-grid
+npm run test -w y-grid         # Test only y-grid
+```
+
+## Project Structure
+
+```
+y-grid/
+├── packages/
+│   └── y-grid/                # Core package
+│       ├── src/
+│       │   ├── index.js       # Main entry point (Spreadsheet class)
+│       │   ├── core/          # Data layer
+│       │   ├── component/     # UI components
+│       │   ├── canvas/        # Canvas drawing utilities
+│       │   └── locale/        # i18n
+│       ├── tests/
+│       ├── assets/
+│       ├── vite.config.js
+│       ├── tsconfig.json
+│       └── biome.json
+├── demo/                      # Demo application (shared)
+├── docs/                      # Documentation & PRDs
+└── package.json               # Workspace root
 ```
 
 ## Architecture
 
 ### Core Data Flow
 
-The spreadsheet follows a data-driven architecture:
-
-1. **Spreadsheet** (`src/index.js`) - Main entry point that manages multiple sheets via `DataProxy` instances
-2. **DataProxy** (`src/core/data-proxy.js`) - Central data store for each sheet. Manages:
+1. **Spreadsheet** (`src/index.js`) - Main entry point, manages multiple sheets via `DataProxy`
+2. **DataProxy** (`src/core/data-proxy.js`) - Central data store for each sheet:
    - Cell data, styles, merges, validations
    - Selection state (`Selector`)
    - Scroll position (`Scroll`)
    - Undo/redo history (`History`)
-   - Clipboard operations
-   - Auto-filter and sorting
-3. **Sheet** (`src/component/sheet.js`) - UI controller that coordinates:
+3. **Sheet** (`src/component/sheet.js`) - UI controller:
    - Canvas rendering via `Table`
-   - User input via `Editor`, `Selector`, keyboard/mouse events
-   - Toolbar, context menus, scrollbars, resizers
+   - User input handling
+   - Toolbar, context menus, scrollbars
 
 ### Rendering
 
-All spreadsheet content is drawn on a single `<canvas>` element by `Table` (`src/component/table.js`) which uses drawing utilities from `src/canvas/draw.js`.
+All content is drawn on a single `<canvas>` element by `Table` (`src/component/table.js`) using drawing utilities from `src/canvas/draw.js`.
 
-### Key Core Modules
+### Key Modules
 
-- `src/core/cell-range.js` - CellRange class for range operations (A1:B5 style)
-- `src/core/alphabet.js` - Column letter ↔ index conversion (A=0, B=1, etc.)
-- `src/core/row.js` / `src/core/col.js` - Row/column data and dimensions
-- `src/core/merge.js` - Merged cell tracking
-- `src/core/formula.js` - Built-in formula functions (SUM, AVERAGE, MAX, MIN, IF, AND, OR, CONCAT)
+- `src/core/cell-range.js` - CellRange class for range operations
+- `src/core/alphabet.js` - Column letter ↔ index conversion (A=0, B=1)
+- `src/core/row.js` / `src/core/col.js` - Row/column dimensions
+- `src/core/formula.js` - Formula functions (SUM, AVERAGE, MAX, MIN, IF, etc.)
 
-### Component Structure
+### Component Pattern
 
-UI components in `src/component/` use a lightweight DOM helper (`element.js`) for creating elements:
+UI components use a lightweight DOM helper:
 ```javascript
 import { h } from './element';
 const div = h('div', 'my-class').children(child1, child2);
 ```
 
-### Localization
-
-Locale files in `src/locale/` (en.js, zh-cn.js, de.js, nl.js). Use `locale()` and `t()` from `src/locale/locale.js`.
-
 ## Configuration
 
-Biome is used for linting and formatting (see `biome.json`):
+**Biome** (`packages/y-grid/biome.json`):
 - Single quotes
 - Semicolons required
 - 2-space indentation
-- Parameter reassignment allowed
+
+**TypeScript** (`packages/y-grid/tsconfig.json`):
+- Mixed JS/TS codebase (`allowJs: true`)
+- Incremental migration in progress
+
+## Roadmap
+
+See `docs/refactoring_plan.md` for the full roadmap. Key priorities:
+
+1. **Performance** - Virtual scrolling, dirty region tracking, layered canvas
+2. **TypeScript** - Incremental migration
+3. **Plugin system** - For optional features like Excel import

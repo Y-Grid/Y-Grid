@@ -40,7 +40,7 @@
     }
   },
   "files": {
-    "include": ["src/**/*.js", "test/**/*.js"],
+    "include": ["src/**/*.js", "src/**/*.ts", "tests/**/*.js", "tests/**/*.ts"],
     "ignore": ["node_modules", "dist"]
   }
 }
