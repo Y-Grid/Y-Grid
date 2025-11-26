@@ -134,7 +134,7 @@
 </g>
 <g xmlns="http://www.w3.org/2000/svg" transform="translate(90,54)"><polygon fill="#000000" fill-rule="evenodd" points="12 5 3.125 5 7.06 1.06 6 0 0 6 6 12 7.06 10.94 3.125 7 12 7" transform="translate(3 3)"/>
 </g>
-<g xmlns="http://www.w3.org/2000/svg" transform="translate(108,54)"><path fill="#000000" fill-rule="evenodd" d="M1 2c0-.55.45-1 1-1h3l2 2h5c.55 0 1 .45 1 1v2H1V2zM2 7h14l-2 7H0l2-7z" transform="translate(1 2)"/>
+<g xmlns="http://www.w3.org/2000/svg" transform="translate(108,54)"><path fill="#000000" fill-rule="evenodd" d="M4.5 6h10.3c.7 0 1.1.75.8 1.35L12.9 13H1.5l2.7-5.65c.2-.45.65-.75 1.15-.75H4.5zM4.5 5h7v-1.5c0-.55-.45-1-1-1H7L5 1H1.5c-.55 0-1 .45-1 1v7l2.15-3.5c.35-.6 1-.95 1.7-.95h.15z" transform="translate(1 2)"/>
 </g>
 <g xmlns="http://www.w3.org/2000/svg" transform="translate(126,54)"><path fill="#000000" fill-rule="evenodd" d="M12,0 L2,0 C0.9,0 0,0.9 0,2 L0,14 C0,15.1 0.9,16 2,16 L14,16 C15.1,16 16,15.1 16,14 L16,4 L12,0 Z M14,14 L2,14 L2,2 L11,2 L11,5 L14,5 L14,14 Z M4,12 L12,12 L12,7 L4,7 L4,12 Z M4,4 L9,4 L9,6 L4,6 L4,4 Z" transform="translate(1 1)"/>
 </g>
