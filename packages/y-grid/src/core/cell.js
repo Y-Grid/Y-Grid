@@ -90,18 +90,28 @@ const infixExprToSuffixExpr = (src) => {
           // priority: */ > +-
           // console.log('xxxx:', operatorStack, c, stack);
           if (operatorStack.length > 0 && (c === '+' || c === '-')) {
-            let top = operatorStack[operatorStack.length - 1];
-            if (top !== '(') stack.push(operatorStack.pop());
-            if (top === '*' || top === '/') {
-              while (operatorStack.length > 0) {
-                top = operatorStack[operatorStack.length - 1];
-                if (top !== '(') stack.push(operatorStack.pop());
-                else break;
+            // Pop all operators with higher or equal precedence
+            while (operatorStack.length > 0) {
+              const top = operatorStack[operatorStack.length - 1];
+              if (top === '(') break;
+              // + and - have same precedence, * and / have higher precedence
+              // So pop *, /, +, - when we see + or -
+              if (top === '+' || top === '-' || top === '*' || top === '/') {
+                stack.push(operatorStack.pop());
+              } else {
+                break;
               }
             }
-          } else if (operatorStack.length > 0) {
-            const top = operatorStack[operatorStack.length - 1];
-            if (top === '*' || top === '/') stack.push(operatorStack.pop());
+          } else if (operatorStack.length > 0 && (c === '*' || c === '/')) {
+            // Only pop * or / (same precedence)
+            while (operatorStack.length > 0) {
+              const top = operatorStack[operatorStack.length - 1];
+              if (top === '*' || top === '/') {
+                stack.push(operatorStack.pop());
+              } else {
+                break;
+              }
+            }
           }
           operatorStack.push(c);
         }
