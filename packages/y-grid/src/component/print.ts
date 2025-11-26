@@ -134,7 +134,7 @@ export default class Print {
                     ...PAGER_ORIENTATIONS.map((_it, index) =>
                       h('option', '')
                         .attr('value', String(index))
-                        .child(`${(t('print.orientations') as unknown as string[])[index]}`)
+                        .child(`${t('print.orientations', 2)[index]}`)
                     )
                   )
                   .on('change', pagerOrientationChange.bind(this))

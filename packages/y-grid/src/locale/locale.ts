@@ -190,7 +190,18 @@ function translate<T = string>(
   return undefined;
 }
 
-function t(key: string): string {
+// Function overloads for type inference
+// returnType: 1 = string (default), 2 = string[]
+function t(key: string, returnType: 2): string[];
+function t(key: string, returnType?: 1): string;
+function t(key: string, returnType: 1 | 2 = 1): string | string[] {
+  if (returnType === 2) {
+    let v = translate<string[]>(key, $messages);
+    if (!v && typeof window !== 'undefined' && window.yGrid?.$messages) {
+      v = translate<string[]>(key, window.yGrid.$messages);
+    }
+    return v || [];
+  }
   let v = translate<string>(key, $messages);
   if (!v && typeof window !== 'undefined' && window.yGrid?.$messages) {
     v = translate<string>(key, window.yGrid.$messages);
