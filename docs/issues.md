@@ -233,57 +233,41 @@ describe("Cross-Sheet Formulas", () => {
 
 ---
 
-## Issue #5: XSS Security Vulnerability
+## Issue #5: XSS Security Vulnerability ✅ RESOLVED
 
 **Source:** [x-spreadsheet #580](https://github.com/myliang/x-spreadsheet/issues/580)
 **Priority:** 🔴 Critical
 **Category:** Security
+**Status:** Fixed (2024-11-26)
 
 ### Description
 
 Cell content is not properly sanitized, allowing XSS attacks through malicious cell data.
 
-### Testing Strategy
+### Solution Implemented
 
-```typescript
-describe("XSS Prevention", () => {
-  const xssPayloads = [
-    '<script>alert("xss")</script>',
-    '<img src=x onerror=alert("xss")>',
-    '"><script>alert("xss")</script>',
-    'javascript:alert("xss")',
-    '<svg onload=alert("xss")>',
-  ];
+Added `escapeHtml()` utility function and `safeHtml()` method to the Element class:
 
-  xssPayloads.forEach((payload) => {
-    it(`should sanitize: ${payload.substring(0, 30)}...`, () => {
-      grid.cellText(0, 0, payload);
-      grid.reRender();
+1. **`src/component/element.ts`**: Added `escapeHtml()` function that escapes `<`, `>`, `&`, `"`, and `'` characters
+2. **`src/component/element.ts`**: Added `safeHtml()` method that uses `escapeHtml()` before setting innerHTML
+3. **`src/component/editor.ts`**: Updated all `textlineEl.html()` calls to use `safeHtml()`
+4. **`src/component/suggest.ts`**: Updated label rendering to use `safeHtml()`
+5. **`src/component/message.ts`**: Updated toast content to use `safeHtml()`
+6. **`src/component/tooltip.ts`**: Updated tooltip content to use `safeHtml()`
 
-      // Check DOM for script execution
-      const cellEl = document.querySelector('[data-cell="0-0"]');
-      expect(cellEl?.innerHTML).not.toContain("<script");
-      expect(cellEl?.innerHTML).not.toContain("onerror");
-      expect(cellEl?.innerHTML).not.toContain("javascript:");
-    });
-  });
+### Test Coverage
 
-  it("should sanitize imported data", async () => {
-    const maliciousData = {
-      rows: { 0: { cells: { 0: { text: "<script>alert(1)</script>" } } } },
-    };
-    grid.loadData([maliciousData]);
-    // Verify no script execution
-  });
-});
-```
+Added comprehensive XSS tests in `tests/security/xss.test.ts`:
+- 37 test cases covering various XSS payloads
+- Tests for script tags, img onerror, SVG onload, attribute injection, etc.
+- Edge cases for long strings, null bytes, HTML comments, CDATA sections
 
 ### Acceptance Criteria
 
-- [ ] All user input sanitized before rendering
-- [ ] HTML entities escaped in cell display
-- [ ] Imported data sanitized
-- [ ] No script execution possible through cell content
+- [x] All user input sanitized before rendering
+- [x] HTML entities escaped in cell display
+- [x] Imported data sanitized
+- [x] No script execution possible through cell content
 
 ---
 

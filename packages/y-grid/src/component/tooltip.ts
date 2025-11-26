@@ -7,7 +7,7 @@ export default function tooltip(html: string, target: HTMLElement): void {
     return;
   }
   const { left, top, width, height } = target.getBoundingClientRect();
-  const el = h('div', `${cssPrefix}-tooltip`).html(html).show();
+  const el = h('div', `${cssPrefix}-tooltip`).safeHtml(html).show();
   document.body.appendChild(el.el);
   const elBox = el.box();
   el.css('left', `${left + (width / 2) - elBox.width / 2}px`).css('top', `${top + height + 2}px`);

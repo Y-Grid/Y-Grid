@@ -127,7 +127,7 @@ export default class Suggest {
           this.hide();
         });
       if (it.label) {
-        item.child(h('div', 'label').html(it.label));
+        item.child(h('div', 'label').safeHtml(it.label));
       }
       return item;
     });

@@ -5,6 +5,19 @@ export interface Offset {
   width?: number;
 }
 
+/**
+ * Escapes HTML special characters to prevent XSS attacks.
+ * Use this when displaying user-provided content.
+ */
+export function escapeHtml(unsafe: string): string {
+  return unsafe
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 export interface ScrollPosition {
   top?: number;
   left?: number;
@@ -224,6 +237,15 @@ class Element {
       return this;
     }
     return this.el.innerHTML;
+  }
+
+  /**
+   * Sets innerHTML with HTML entity escaping to prevent XSS.
+   * Use this for user-provided content like cell values.
+   */
+  safeHtml(content: string): this {
+    this.el.innerHTML = escapeHtml(content);
+    return this;
   }
 
   // Getter overload

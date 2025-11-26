@@ -65,7 +65,7 @@ function insertText(this: Editor, evt: Event, itxt: string): void {
   target.setSelectionRange(selectionEnd + 1, selectionEnd + 1);
 
   this.inputText = ntxt;
-  this.textlineEl.html(ntxt);
+  this.textlineEl.safeHtml(ntxt);
   resetTextareaSize.call(this);
 }
 
@@ -101,7 +101,7 @@ function inputEventHandler(this: Editor, evt: Event): void {
           suggest.hide();
         }
       }
-      textlineEl.html(v);
+      textlineEl.safeHtml(v);
       resetTextareaSize.call(this);
       this.change('input', v);
     } else {
@@ -123,7 +123,7 @@ function inputEventHandler(this: Editor, evt: Event): void {
         suggest.hide();
       }
     }
-    textlineEl.html(v);
+    textlineEl.safeHtml(v);
     resetTextareaSize.call(this);
     this.change('input', v);
   }
@@ -143,7 +143,7 @@ function setText(this: Editor, text: string, position: number): void {
   textEl.el.blur();
 
   textEl.val(text);
-  textlineEl.html(text);
+  textlineEl.safeHtml(text);
   setTextareaRange.call(this, position);
 }
 
@@ -244,7 +244,7 @@ export default class Editor {
     this.inputText = '';
     this.el.hide();
     this.textEl.val('');
-    this.textlineEl.html('');
+    this.textlineEl.safeHtml('');
     resetSuggestItems.call(this);
     this.datepicker.hide();
   }
