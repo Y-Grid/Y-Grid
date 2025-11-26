@@ -4,27 +4,30 @@ import { getFontSizePxByPt } from '../core/font';
 import { formatm } from '../core/format';
 import { formulam } from '../core/formula';
 
-import { Draw, DrawBox, npx, thinLineWidth } from '../canvas/draw';
+import {
+  Draw,
+  DrawBox,
+  npx,
+  thinLineWidth,
+  type Border,
+  type Borders,
+  type Font,
+  type TextAlign,
+  type TextValign,
+} from '../canvas/draw';
 
 // global var
 const cellPaddingWidth = 5;
 const tableFixedHeaderCleanStyle = { fillStyle: '#f4f5f8' };
 const tableGridStyle = {
   fillStyle: '#fff',
-  lineWidth: thinLineWidth,
+  lineWidth: thinLineWidth(),
   strokeStyle: '#e6e6e6',
 };
 
-interface CellBorder {
-  top?: unknown;
-  bottom?: unknown;
-  left?: unknown;
-  right?: unknown;
-}
-
 interface CellStyle {
   bgcolor?: string;
-  border?: CellBorder;
+  border?: Borders;
   format?: string;
   font?: {
     size: number;
@@ -32,8 +35,8 @@ interface CellStyle {
     bold?: boolean;
     italic?: boolean;
   };
-  align?: string;
-  valign?: string;
+  align?: TextAlign;
+  valign?: TextValign;
   color?: string;
   strike?: boolean;
   underline?: boolean;
@@ -149,9 +152,7 @@ export function renderCell(
   const dbox = getDrawBox(data, rindex, cindex, yoffset);
   dbox.bgcolor = style.bgcolor;
   if (style.border !== undefined) {
-    dbox.setBorders(
-      style.border as { top: unknown; bottom: unknown; left: unknown; right: unknown }
-    );
+    dbox.setBorders(style.border);
     draw.strokeBorders(dbox);
   }
   draw.rect(dbox, () => {
@@ -167,8 +168,12 @@ export function renderCell(
     if (style.format) {
       cellText = formatm[style.format].render(cellText);
     }
-    const font = Object.assign({}, style.font);
-    font.size = getFontSizePxByPt(font.size);
+    const font: Font = {
+      size: getFontSizePxByPt(style.font?.size ?? 10),
+      name: style.font?.name ?? 'Arial',
+      bold: style.font?.bold,
+      italic: style.font?.italic,
+    };
     draw.text(
       cellText,
       dbox,

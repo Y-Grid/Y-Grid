@@ -223,8 +223,9 @@ export default class Print {
     const iframe = h('iframe', '').hide();
     const { el } = iframe;
     window.document.body.appendChild(el);
-    const { contentWindow } = el as HTMLIFrameElement;
-    const idoc = contentWindow!.document;
+    const { contentWindow } = (el as HTMLIFrameElement);
+    if (!contentWindow) return;
+    const idoc = contentWindow.document;
     const style = document.createElement('style');
     style.innerHTML = `
       @page { size: ${paper.width}px ${paper.height}px; };
@@ -235,12 +236,14 @@ export default class Print {
       };
     `;
     idoc.head.appendChild(style);
-    this.canvases.forEach((it) => {
+    for (const it of this.canvases) {
       const cn = it.cloneNode(false) as HTMLCanvasElement;
       const ctx = cn.getContext('2d');
-      ctx!.drawImage(it, 0, 0);
+      if (ctx) {
+        ctx.drawImage(it, 0, 0);
+      }
       idoc.body.appendChild(cn);
-    });
-    contentWindow!.print();
+    }
+    contentWindow.print();
   }
 }

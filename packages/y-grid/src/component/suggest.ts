@@ -46,27 +46,27 @@ function inputEnter(this: Suggest, evt: KeyboardEvent): void {
 }
 
 function inputKeydownHandler(this: Suggest, evt: KeyboardEvent): void {
-  const { keyCode } = evt;
+  const { key } = evt;
   if (evt.ctrlKey) {
     evt.stopPropagation();
   }
-  switch (keyCode) {
-    case 37: // left
+  switch (key) {
+    case 'ArrowLeft':
       evt.stopPropagation();
       break;
-    case 38: // up
+    case 'ArrowUp':
       inputMovePrev.call(this, evt);
       break;
-    case 39: // right
+    case 'ArrowRight':
       evt.stopPropagation();
       break;
-    case 40: // down
+    case 'ArrowDown':
       inputMoveNext.call(this, evt);
       break;
-    case 13: // enter
+    case 'Enter':
       inputEnter.call(this, evt);
       break;
-    case 9:
+    case 'Tab':
       inputEnter.call(this, evt);
       break;
     default:

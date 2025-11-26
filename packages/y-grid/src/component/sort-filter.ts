@@ -48,8 +48,9 @@ function buildFilterBody(this: SortFilter, items: Record<string, number>): void 
 
 function resetFilterHeader(this: SortFilter): void {
   const { filterhEl, filterValues, values } = this;
-  filterhEl.html(`${filterValues.length} / ${values!.length}`);
-  filterhEl.checked(filterValues.length === values!.length);
+  const valuesLength = values?.length ?? 0;
+  filterhEl.html(`${filterValues.length} / ${valuesLength}`);
+  filterhEl.checked(filterValues.length === valuesLength);
 }
 
 export default class SortFilter {
@@ -94,8 +95,8 @@ export default class SortFilter {
   btnClick(it: string): void {
     if (it === 'ok') {
       const { ci, sort, filterValues } = this;
-      if (this.ok) {
-        this.ok(ci!, sort, 'in', filterValues);
+      if (this.ok && ci !== null) {
+        this.ok(ci, sort, 'in', filterValues);
       }
     }
     this.hide();
@@ -114,10 +115,14 @@ export default class SortFilter {
     if (it === 'all') {
       if (children.length === filterValues.length) {
         this.filterValues = [];
-        children.forEach((i) => h(i).checked(false));
+        for (const i of children) {
+          h(i).checked(false);
+        }
       } else {
-        this.filterValues = Array.from(values!);
-        children.forEach((i) => h(i).checked(true));
+        this.filterValues = values ? Array.from(values) : [];
+        for (const i of children) {
+          h(i).checked(true);
+        }
       }
     } else {
       const checked = h(children[index]).toggle('checked');

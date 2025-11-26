@@ -165,9 +165,9 @@ export default class Bottombar {
   }
 
   clear(): void {
-    this.items.forEach((it) => {
+    for (const it of this.items) {
       this.menuEl.removeChild(it.el);
-    });
+    }
     this.items = [];
     this.dataNames = [];
     this.moreEl.reset(this.dataNames);
@@ -179,7 +179,9 @@ export default class Bottombar {
       const index = this.items.findIndex((it) => it === deleteEl);
       this.items.splice(index, 1);
       this.dataNames.splice(index, 1);
-      this.menuEl.removeChild(deleteEl!.el);
+      if (deleteEl) {
+        this.menuEl.removeChild(deleteEl.el);
+      }
       this.moreEl.reset(this.dataNames);
       if (activeEl === deleteEl) {
         const [f] = this.items;
@@ -195,7 +197,9 @@ export default class Bottombar {
   clickSwap2(item: Element): void {
     const index = this.items.findIndex((it) => it === item);
     this.clickSwap(item);
-    this.activeEl!.toggle();
+    if (this.activeEl) {
+      this.activeEl.toggle();
+    }
     this.swapFunc(index);
   }
 

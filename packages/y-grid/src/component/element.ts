@@ -68,9 +68,9 @@ class Element {
   offset(value: Offset): this;
   offset(value?: Offset): this | Offset {
     if (value !== undefined) {
-      Object.keys(value).forEach((k) => {
+      for (const k of Object.keys(value)) {
         this.css(k, `${value[k as keyof Offset]}px`);
-      });
+      }
       return this;
     }
     const { offsetTop, offsetLeft, offsetHeight, offsetWidth } = this.el;
@@ -111,7 +111,9 @@ class Element {
     if (eles.length === 0) {
       return this.el.childNodes;
     }
-    eles.forEach((ele) => this.child(ele));
+    for (const ele of eles) {
+      this.child(ele);
+    }
     return this;
   }
 
@@ -201,9 +203,9 @@ class Element {
     if (typeof key === 'string') {
       return this.el.getAttribute(key);
     }
-    Object.keys(key).forEach((k) => {
+    for (const k of Object.keys(key)) {
       this.el.setAttribute(k, key[k]);
-    });
+    }
     return this;
   }
 
@@ -241,7 +243,9 @@ class Element {
   }
 
   cssRemoveKeys(...keys: string[]): this {
-    keys.forEach((k) => this.el.style.removeProperty(k));
+    for (const k of keys) {
+      this.el.style.removeProperty(k);
+    }
     return this;
   }
 
@@ -253,9 +257,9 @@ class Element {
   css(name: Record<string, string>): this;
   css(name: string | Record<string, string>, value?: string): this | string {
     if (value === undefined && typeof name !== 'string') {
-      Object.keys(name).forEach((k) => {
+      for (const k of Object.keys(name)) {
         (this.el.style as unknown as Record<string, string>)[k] = name[k];
-      });
+      }
       return this;
     }
     if (value !== undefined) {

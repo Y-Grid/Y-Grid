@@ -70,13 +70,13 @@ function insertText(this: Editor, evt: Event, itxt: string): void {
 }
 
 function keydownEventHandler(this: Editor, evt: KeyboardEvent): void {
-  const { keyCode, altKey } = evt;
-  if (keyCode !== 13 && keyCode !== 9) evt.stopPropagation();
-  if (keyCode === 13 && altKey) {
+  const { key, altKey } = evt;
+  if (key !== 'Enter' && key !== 'Tab') evt.stopPropagation();
+  if (key === 'Enter' && altKey) {
     insertText.call(this, evt, '\n');
     evt.stopPropagation();
   }
-  if (keyCode === 13 && !altKey) evt.preventDefault();
+  if (key === 'Enter' && !altKey) evt.preventDefault();
 }
 
 function inputEventHandler(this: Editor, evt: Event): void {
@@ -297,8 +297,8 @@ export default class Editor {
           datepicker.setValue(text);
         }
       }
-      if (type === 'list') {
-        suggest.setItems(validator.values!());
+      if (type === 'list' && validator.values) {
+        suggest.setItems(validator.values());
         suggest.search('');
       }
     }

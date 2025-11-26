@@ -78,8 +78,8 @@ export default class FormField {
       }
     }
     if (rule.type || rule.pattern) {
-      const pattern = rule.pattern || patterns[rule.type!];
-      if (!pattern.test(v)) {
+      const pattern = rule.pattern || (rule.type ? patterns[rule.type] : null);
+      if (pattern && !pattern.test(v)) {
         tip.html(t('validation.notMatch'));
         el.addClass('error');
         return false;

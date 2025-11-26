@@ -229,7 +229,9 @@ export default class ModalValidation extends Modal {
         vf.val(value || '');
       }
       this.criteriaSelected(type);
-      this.criteriaOperatorSelected(operator!);
+      if (operator) {
+        this.criteriaOperatorSelected(operator);
+      }
     }
     this.show();
   }

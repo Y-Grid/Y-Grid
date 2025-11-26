@@ -39,7 +39,7 @@ export default class Modal {
       top: (clientHeight - height) / 3,
     });
     window.xkeydownEsc = (evt: KeyboardEvent) => {
-      if (evt.keyCode === 27) {
+      if (evt.key === 'Escape') {
         this.hide();
       }
     };

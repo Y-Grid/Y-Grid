@@ -1,8 +1,8 @@
-// src: include chars: [0-9], +, -, *, /
-// // 9+(3-1)*3+10/2 => 9 3 1-3*+ 10 2/+
-const infix2suffix = (src) => {
-  const operatorStack = [];
-  const stack = [];
+// src: include chars: [0-9], +, -, *, /, (, )
+// 9+(3-1)*3+10/2 => 9 3 1-3*+ 10 2/+
+const infix2suffix = (src: string): string[] => {
+  const operatorStack: string[] = [];
+  const stack: string[] = [];
   for (let i = 0; i < src.length; i += 1) {
     const c = src.charAt(i);
     if (c !== ' ') {
@@ -10,7 +10,7 @@ const infix2suffix = (src) => {
         stack.push(c);
       } else if (c === ')') {
         let c1 = operatorStack.pop();
-        while (c1 !== '(') {
+        while (c1 !== undefined && c1 !== '(') {
           stack.push(c1);
           c1 = operatorStack.pop();
         }
@@ -19,8 +19,10 @@ const infix2suffix = (src) => {
         if (operatorStack.length > 0 && (c === '+' || c === '-')) {
           const last = operatorStack[operatorStack.length - 1];
           if (last === '*' || last === '/') {
-            while (operatorStack.length > 0) {
-              stack.push(operatorStack.pop());
+            let op = operatorStack.pop();
+            while (op !== undefined) {
+              stack.push(op);
+              op = operatorStack.pop();
             }
           }
         }
@@ -28,8 +30,10 @@ const infix2suffix = (src) => {
       }
     }
   }
-  while (operatorStack.length > 0) {
-    stack.push(operatorStack.pop());
+  let remaining = operatorStack.pop();
+  while (remaining !== undefined) {
+    stack.push(remaining);
+    remaining = operatorStack.pop();
   }
   return stack;
 };

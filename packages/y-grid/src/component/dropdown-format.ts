@@ -18,9 +18,10 @@ export default class DropdownFormat extends Dropdown {
       const item = h('div', `${cssPrefix}-item`);
       if (it.key === 'divider') {
         item.addClass('divider');
-      } else {
-        item.child(it.title!()).on('click', () => {
-          this.setTitle(it.title!());
+      } else if (it.title) {
+        const title = it.title();
+        item.child(title).on('click', () => {
+          this.setTitle(title);
           this.change(it);
         });
         if (it.label) item.child(h('div', 'label').html(it.label));

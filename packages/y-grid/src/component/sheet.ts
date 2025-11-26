@@ -176,10 +176,11 @@ function selectorSet(
 function selectorMove(this: Sheet, multiple: boolean, direction: string): void {
   const { selector, data } = this;
   const { rows, cols } = data;
-  let [ri, ci] = selector.indexes!;
-  const { eri, eci } = selector.range!;
-  if (multiple) {
-    [ri, ci] = selector.moveIndexes!;
+  if (!selector.indexes || !selector.range) return;
+  let [ri, ci] = selector.indexes;
+  const { eri, eci } = selector.range;
+  if (multiple && selector.moveIndexes) {
+    [ri, ci] = selector.moveIndexes;
   }
   if (direction === 'left') {
     if (ci > 0) ci -= 1;
@@ -394,8 +395,8 @@ function paste(this: Sheet, what: string, evt?: ClipboardEvent): void {
     data.pasteFromSystemClipboard(resetSheet, eventTrigger);
   } else if (data.paste(what, (msg) => xtoast('Tip', msg))) {
     sheetReset.call(this);
-  } else if (evt) {
-    const cdata = evt.clipboardData!.getData('text/plain');
+  } else if (evt?.clipboardData) {
+    const cdata = evt.clipboardData.getData('text/plain');
     this.data.pasteFromText(cdata);
     sheetReset.call(this);
   }
@@ -528,7 +529,8 @@ function horizontalScrollbarMove(this: Sheet, distance: number): void {
 function rowResizerFinished(this: Sheet, cRect: { ri: number }, distance: number): void {
   const { ri } = cRect;
   const { table, selector, data } = this;
-  const { sri, eri } = selector.range!;
+  if (!selector.range) return;
+  const { sri, eri } = selector.range;
   if (ri >= sri && ri <= eri) {
     for (let row = sri; row <= eri; row += 1) {
       data.rows.setHeight(row, distance);
@@ -546,7 +548,8 @@ function rowResizerFinished(this: Sheet, cRect: { ri: number }, distance: number
 function colResizerFinished(this: Sheet, cRect: { ci: number }, distance: number): void {
   const { ci } = cRect;
   const { table, selector, data } = this;
-  const { sci, eci } = selector.range!;
+  if (!selector.range) return;
+  const { sci, eci } = selector.range;
   if (ci >= sci && ci <= eci) {
     for (let col = sci; col <= eci; col += 1) {
       data.cols.setWidth(col, distance);
@@ -780,97 +783,96 @@ function sheetInitEvents(this: Sheet): void {
 
   bind(window, 'keydown', (evt) => {
     if (!this.focusing) return;
-    const keyCode = (evt as KeyboardEvent).keyCode || (evt as KeyboardEvent).which;
     const { key, ctrlKey, shiftKey, metaKey } = evt as KeyboardEvent;
     if (ctrlKey || metaKey) {
-      switch (keyCode) {
-        case 90:
+      switch (key) {
+        case 'z':
           this.undo();
           evt.preventDefault();
           break;
-        case 89:
+        case 'y':
           this.redo();
           evt.preventDefault();
           break;
-        case 67:
+        case 'c':
           break;
-        case 88:
+        case 'x':
           cut.call(this);
           evt.preventDefault();
           break;
-        case 85:
+        case 'u':
           toolbar.trigger('underline');
           evt.preventDefault();
           break;
-        case 86:
+        case 'v':
           break;
-        case 37:
+        case 'ArrowLeft':
           selectorMove.call(this, shiftKey, 'row-first');
           evt.preventDefault();
           break;
-        case 38:
+        case 'ArrowUp':
           selectorMove.call(this, shiftKey, 'col-first');
           evt.preventDefault();
           break;
-        case 39:
+        case 'ArrowRight':
           selectorMove.call(this, shiftKey, 'row-last');
           evt.preventDefault();
           break;
-        case 40:
+        case 'ArrowDown':
           selectorMove.call(this, shiftKey, 'col-last');
           evt.preventDefault();
           break;
-        case 32:
+        case ' ':
           selectorSet.call(this, false, -1, this.data.selector.ci, false);
           evt.preventDefault();
           break;
-        case 66:
+        case 'b':
           toolbar.trigger('bold');
           break;
-        case 73:
+        case 'i':
           toolbar.trigger('italic');
           break;
         default:
           break;
       }
     } else {
-      switch (keyCode) {
-        case 32:
+      switch (key) {
+        case ' ':
           if (shiftKey) {
             selectorSet.call(this, false, this.data.selector.ri, -1, false);
           }
           break;
-        case 27:
+        case 'Escape':
           contextMenu.hide();
           clearClipboard.call(this);
           break;
-        case 37:
+        case 'ArrowLeft':
           selectorMove.call(this, shiftKey, 'left');
           evt.preventDefault();
           break;
-        case 38:
+        case 'ArrowUp':
           selectorMove.call(this, shiftKey, 'up');
           evt.preventDefault();
           break;
-        case 39:
+        case 'ArrowRight':
           selectorMove.call(this, shiftKey, 'right');
           evt.preventDefault();
           break;
-        case 40:
+        case 'ArrowDown':
           selectorMove.call(this, shiftKey, 'down');
           evt.preventDefault();
           break;
-        case 9:
+        case 'Tab':
           editor.clear();
           selectorMove.call(this, false, shiftKey ? 'left' : 'right');
           evt.preventDefault();
           break;
-        case 13:
+        case 'Enter':
           editor.clear();
           selectorMove.call(this, false, shiftKey ? 'up' : 'down');
           evt.preventDefault();
           break;
-        case 8:
+        case 'Backspace':
           insertDeleteRowColumn.call(this, 'delete-cell-text');
           evt.preventDefault();
           break;
@@ -882,14 +884,14 @@ function sheetInitEvents(this: Sheet): void {
         insertDeleteRowColumn.call(this, 'delete-cell-text');
         evt.preventDefault();
       } else if (
-        (keyCode >= 65 && keyCode <= 90) ||
-        (keyCode >= 48 && keyCode <= 57) ||
-        (keyCode >= 96 && keyCode <= 105) ||
+        (key.length === 1 && key >= 'a' && key <= 'z') ||
+        (key.length === 1 && key >= 'A' && key <= 'Z') ||
+        (key.length === 1 && key >= '0' && key <= '9') ||
         key === '='
       ) {
         dataSetCellText.call(this, key, 'input');
         editorSet.call(this);
-      } else if (keyCode === 113) {
+      } else if (key === 'F2') {
         editorSet.call(this);
       }
     }

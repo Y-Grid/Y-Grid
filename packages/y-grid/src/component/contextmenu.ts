@@ -42,12 +42,13 @@ function buildMenuItem(this: ContextMenu, item: MenuItem): Element {
   if (item.key === 'divider') {
     return h('div', `${cssPrefix}-item divider`);
   }
+  const title = item.title ? item.title() : '';
   return h('div', `${cssPrefix}-item`)
     .on('click', () => {
       this.itemClick(item.key);
       this.hide();
     })
-    .children(item.title!(), h('div', 'label').child(item.label || ''));
+    .children(title, h('div', 'label').child(item.label || ''));
 }
 
 function buildMenu(this: ContextMenu): Element[] {
