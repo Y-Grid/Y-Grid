@@ -1,4 +1,6 @@
-export default {
+import type { LocaleMessages } from './locale';
+
+const de: LocaleMessages = {
   toolbar: {
     undo: 'Rückgängig machen',
     redo: 'Wiederherstellen',
@@ -55,3 +57,5 @@ export default {
     concat: 'Concat',
   },
 };
+
+export default de;

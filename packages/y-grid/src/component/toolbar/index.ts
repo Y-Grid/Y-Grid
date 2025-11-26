@@ -206,13 +206,17 @@ export default class Toolbar {
 
     if (extendToolbar.left && extendToolbar.left.length > 0) {
       this.items.unshift(buildDivider());
-      const btns = extendToolbar.left.map(genBtn.bind(this));
+      const btns: ToolbarItem[] = (extendToolbar.left as ExtendToolbarOption[]).map((it) =>
+        genBtn.call(this, it)
+      );
 
       this.items.unshift(btns);
     }
     if (extendToolbar.right && extendToolbar.right.length > 0) {
       this.items.push(buildDivider());
-      const btns = extendToolbar.right.map(genBtn.bind(this));
+      const btns: ToolbarItem[] = (extendToolbar.right as ExtendToolbarOption[]).map((it) =>
+        genBtn.call(this, it)
+      );
       this.items.push(btns);
     }
 

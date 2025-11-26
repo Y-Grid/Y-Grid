@@ -1,4 +1,6 @@
-export default {
+import type { LocaleMessages } from './locale';
+
+const zhCn: LocaleMessages = {
   toolbar: {
     undo: '撤销',
     redo: '恢复',
@@ -147,3 +149,5 @@ export default {
     },
   },
 };
+
+export default zhCn;

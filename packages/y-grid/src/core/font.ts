@@ -1,10 +1,7 @@
-// docs
-import './prototypes';
+import type { BaseFont, FontSize, FontSizePT, FontSizePX } from './types';
 
-/** default font list
- * @type {BaseFont[]}
- */
-const baseFonts = [
+/** default font list */
+const baseFonts: BaseFont[] = [
   { key: 'Arial', title: 'Arial' },
   { key: 'Helvetica', title: 'Helvetica' },
   { key: 'Source Sans Pro', title: 'Source Sans Pro' },
@@ -14,10 +11,8 @@ const baseFonts = [
   { key: 'Lato', title: 'Lato' },
 ];
 
-/** default fontSize list
- * @type {FontSize[]}
- */
-const fontSizes = [
+/** default fontSize list */
+const fontSizes: FontSize[] = [
   { pt: 7.5, px: 10 },
   { pt: 8, px: 11 },
   { pt: 9, px: 12 },
@@ -34,17 +29,10 @@ const fontSizes = [
   { pt: 26, px: 34.7 },
   { pt: 36, px: 48 },
   { pt: 42, px: 56 },
-  // { pt: 54, px: 71.7 },
-  // { pt: 63, px: 83.7 },
-  // { pt: 72, px: 95.6 },
 ];
 
-/** map pt to px
- * @date 2019-10-10
- * @param {fontsizePT} pt
- * @returns {fontsizePX}
- */
-function getFontSizePxByPt(pt) {
+/** map pt to px */
+function getFontSizePxByPt(pt: FontSizePT): FontSizePX {
   for (let i = 0; i < fontSizes.length; i += 1) {
     const fontSize = fontSizes[i];
     if (fontSize.pt === pt) {
@@ -54,16 +42,12 @@ function getFontSizePxByPt(pt) {
   return pt;
 }
 
-/** transform baseFonts to map
- * @date 2019-10-10
- * @param {BaseFont[]} [ary=[]]
- * @returns {object}
- */
-function fonts(ary = []) {
-  const map = {};
-  baseFonts.concat(ary).forEach((f) => {
+/** transform baseFonts to map */
+function fonts(ary: BaseFont[] = []): Record<string, BaseFont> {
+  const map: Record<string, BaseFont> = {};
+  for (const f of baseFonts.concat(ary)) {
     map[f.key] = f;
-  });
+  }
   return map;
 }
 

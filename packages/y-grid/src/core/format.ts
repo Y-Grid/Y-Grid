@@ -1,8 +1,16 @@
 import { tf } from '../locale/locale';
 
-const formatStringRender = (v) => v;
+export interface Format {
+  key: string;
+  title: () => string;
+  type: 'string' | 'number' | 'date';
+  label?: string;
+  render: (v: string) => string | string[];
+}
 
-const formatNumberRender = (v) => {
+const formatStringRender = (v: string): string => v;
+
+const formatNumberRender = (v: string): string | string[] => {
   // match "-12.1" or "12" or "12.1"
   if (/^(-?\d*.?\d*)$/.test(v)) {
     const v1 = Number(v).toFixed(2).toString();
@@ -12,7 +20,7 @@ const formatNumberRender = (v) => {
   return v;
 };
 
-const baseFormats = [
+const baseFormats: Format[] = [
   {
     key: 'normal',
     title: tf('format.normal'),
@@ -37,28 +45,28 @@ const baseFormats = [
     title: tf('format.percent'),
     type: 'number',
     label: '10.12%',
-    render: (v) => `${v}%`,
+    render: (v: string): string => `${v}%`,
   },
   {
     key: 'rmb',
     title: tf('format.rmb'),
     type: 'number',
     label: '￥10.00',
-    render: (v) => `￥${formatNumberRender(v)}`,
+    render: (v: string): string | string[] => `￥${formatNumberRender(v)}`,
   },
   {
     key: 'usd',
     title: tf('format.usd'),
     type: 'number',
     label: '$10.00',
-    render: (v) => `$${formatNumberRender(v)}`,
+    render: (v: string): string | string[] => `$${formatNumberRender(v)}`,
   },
   {
     key: 'eur',
     title: tf('format.eur'),
     type: 'number',
     label: '€10.00',
-    render: (v) => `€${formatNumberRender(v)}`,
+    render: (v: string): string | string[] => `€${formatNumberRender(v)}`,
   },
   {
     key: 'date',
@@ -90,17 +98,10 @@ const baseFormats = [
   },
 ];
 
-// const formats = (ary = []) => {
-//   const map = {};
-//   baseFormats.concat(ary).forEach((f) => {
-//     map[f.key] = f;
-//   });
-//   return map;
-// };
-const formatm = {};
-baseFormats.forEach((f) => {
+const formatm: Record<string, Format> = {};
+for (const f of baseFormats) {
   formatm[f.key] = f;
-});
+}
 
 export default {};
 export { formatm, baseFormats };

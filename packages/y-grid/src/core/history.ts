@@ -1,37 +1,35 @@
-// import helper from '../helper';
-
 export default class History {
-  constructor() {
-    this.undoItems = [];
-    this.redoItems = [];
-  }
+  undoItems: string[] = [];
+  redoItems: string[] = [];
 
-  add(data) {
+  add(data: unknown): void {
     this.undoItems.push(JSON.stringify(data));
     this.redoItems = [];
   }
 
-  canUndo() {
+  canUndo(): boolean {
     return this.undoItems.length > 0;
   }
 
-  canRedo() {
+  canRedo(): boolean {
     return this.redoItems.length > 0;
   }
 
-  undo(currentd, cb) {
+  undo(currentd: unknown, cb: (data: unknown) => void): void {
     const { undoItems, redoItems } = this;
     if (this.canUndo()) {
       redoItems.push(JSON.stringify(currentd));
-      cb(JSON.parse(undoItems.pop()));
+      const item = undoItems.pop();
+      if (item !== undefined) cb(JSON.parse(item));
     }
   }
 
-  redo(currentd, cb) {
+  redo(currentd: unknown, cb: (data: unknown) => void): void {
     const { undoItems, redoItems } = this;
     if (this.canRedo()) {
       undoItems.push(JSON.stringify(currentd));
-      cb(JSON.parse(redoItems.pop()));
+      const item = redoItems.pop();
+      if (item !== undefined) cb(JSON.parse(item));
     }
   }
 }

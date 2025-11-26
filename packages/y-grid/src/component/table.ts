@@ -5,14 +5,14 @@ import { formatm } from '../core/format';
 import { formulam } from '../core/formula';
 
 import {
+  type Borders,
   Draw,
   DrawBox,
-  npx,
-  thinLineWidth,
-  type Borders,
   type Font,
   type TextAlign,
   type TextValign,
+  npx,
+  thinLineWidth,
 } from '../canvas/draw';
 
 // global var
@@ -156,16 +156,17 @@ export function renderCell(
   }
   draw.rect(dbox, () => {
     // render text
-    let cellText = '';
+    let cellText: string | string[] = '';
     if (!data.settings.evalPaused) {
       cellText = _cell.render(cell.text || '', formulam, (y: number, x: number) =>
         data.getCellTextOrDefault(x, y)
-      );
+      ) as string;
     } else {
       cellText = cell.text || '';
     }
     if (style.format) {
-      cellText = formatm[style.format].render(cellText);
+      const rendered = formatm[style.format].render(cellText as string);
+      cellText = Array.isArray(rendered) ? rendered.join('.') : rendered;
     }
     const font: Font = {
       size: getFontSizePxByPt(style.font?.size ?? 10),
@@ -174,7 +175,7 @@ export function renderCell(
       italic: style.font?.italic,
     };
     draw.text(
-      cellText,
+      cellText as string,
       dbox,
       {
         align: style.align,

@@ -1,19 +1,21 @@
 import { CellRange } from './cell-range';
 
 class Merges {
-  constructor(d = []) {
+  _: CellRange[];
+
+  constructor(d: CellRange[] = []) {
     this._ = d;
   }
 
-  forEach(cb) {
+  forEach(cb: (cellRange: CellRange) => void): void {
     this._.forEach(cb);
   }
 
-  deleteWithin(cr) {
+  deleteWithin(cr: CellRange): void {
     this._ = this._.filter((it) => !it.within(cr));
   }
 
-  getFirstIncludes(ri, ci) {
+  getFirstIncludes(ri: number, ci: number): CellRange | null {
     for (let i = 0; i < this._.length; i += 1) {
       const it = this._[i];
       if (it.includes(ri, ci)) {
@@ -23,39 +25,43 @@ class Merges {
     return null;
   }
 
-  filterIntersects(cellRange) {
+  filterIntersects(cellRange: CellRange): Merges {
     return new Merges(this._.filter((it) => it.intersects(cellRange)));
   }
 
-  intersects(cellRange) {
+  intersects(cellRange: CellRange): boolean {
     for (let i = 0; i < this._.length; i += 1) {
       const it = this._[i];
       if (it.intersects(cellRange)) {
-        // console.log('intersects');
         return true;
       }
     }
     return false;
   }
 
-  union(cellRange) {
+  union(cellRange: CellRange): CellRange {
     let cr = cellRange;
-    this._.forEach((it) => {
+    for (const it of this._) {
       if (it.intersects(cr)) {
         cr = it.union(cr);
       }
-    });
+    }
     return cr;
   }
 
-  add(cr) {
+  add(cr: CellRange): void {
     this.deleteWithin(cr);
     this._.push(cr);
   }
 
   // type: row | column
-  shift(type, index, n, cbWithin) {
-    this._.forEach((cellRange) => {
+  shift(
+    type: 'row' | 'column',
+    index: number,
+    n: number,
+    cbWithin: (sri: number, sci: number, rn: number, cn: number) => void
+  ): void {
+    for (const cellRange of this._) {
       const { sri, sci, eri, eci } = cellRange;
       const range = cellRange;
       if (type === 'row') {
@@ -75,27 +81,26 @@ class Merges {
           cbWithin(sri, sci, 0, n);
         }
       }
-    });
+    }
   }
 
-  move(cellRange, rn, cn) {
-    this._.forEach((it1) => {
-      const it = it1;
+  move(cellRange: CellRange, rn: number, cn: number): void {
+    for (const it of this._) {
       if (it.within(cellRange)) {
         it.eri += rn;
         it.sri += rn;
         it.sci += cn;
         it.eci += cn;
       }
-    });
+    }
   }
 
-  setData(merges) {
+  setData(merges: string[]): this {
     this._ = merges.map((merge) => CellRange.valueOf(merge));
     return this;
   }
 
-  getData() {
+  getData(): string[] {
     return this._.map((merge) => merge.toString());
   }
 }

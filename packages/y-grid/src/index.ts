@@ -5,7 +5,7 @@ import Sheet from './component/sheet';
 import { cssPrefix } from './config';
 import { parseCSV, parseCSVFile } from './core/csv-parser';
 import DataProxy from './core/data-proxy';
-import { locale } from './locale/locale';
+import { type LocaleMessages, locale } from './locale/locale';
 import './index.less';
 
 export interface ExtendToolbarOption {
@@ -55,6 +55,7 @@ export interface Options {
       italic: boolean;
     };
   };
+  [key: string]: unknown;
 }
 
 export type CellMerge = [number, number];
@@ -218,7 +219,7 @@ class YGrid {
       for (let i = 0; i < ds.length; i += 1) {
         const it = ds[i];
         const nd = this.addSheet(it.name, i === 0);
-        nd.setData(it);
+        nd.setData(it as unknown as Record<string, unknown>);
         if (i === 0) {
           this.sheet.resetData(nd as unknown as ConstructorParameters<typeof Sheet>[1]);
         }
@@ -228,7 +229,7 @@ class YGrid {
   }
 
   getData(): SheetData[] {
-    return this.datas.map((it) => it.getData());
+    return this.datas.map((it) => it.getData()) as SheetData[];
   }
 
   cellText(ri: number, ci: number, text: string, sheetIndex = 0): this {
@@ -237,10 +238,12 @@ class YGrid {
   }
 
   cell(ri: number, ci: number, sheetIndex = 0): CellData | null {
-    return this.datas[sheetIndex].getCell(ri, ci);
+    const c = this.datas[sheetIndex].getCell(ri, ci);
+    if (!c) return null;
+    return { text: c.text || '', style: c.style, merge: c.merge };
   }
 
-  cellStyle(ri: number, ci: number, sheetIndex = 0): CellStyle {
+  cellStyle(ri: number, ci: number, sheetIndex = 0): CellStyle | null {
     return this.datas[sheetIndex].getCellStyle(ri, ci);
   }
 
@@ -329,7 +332,7 @@ class YGrid {
     this.loadData([{ rows } as SheetData]);
   }
 
-  static locale(lang: string, message: object): void {
+  static locale(lang: string, message?: LocaleMessages): void {
     locale(lang, message);
   }
 }

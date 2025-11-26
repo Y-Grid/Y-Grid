@@ -1,4 +1,6 @@
-export default {
+import type { LocaleMessages } from './locale';
+
+const en: LocaleMessages = {
   toolbar: {
     undo: 'Undo',
     redo: 'Redo',
@@ -147,3 +149,5 @@ export default {
     },
   },
 };
+
+export default en;

@@ -1,28 +1,31 @@
-/* eslint-disable no-param-reassign */
-function cloneDeep(obj) {
+function cloneDeep<T>(obj: T): T {
   return JSON.parse(JSON.stringify(obj));
 }
 
-const mergeDeep = (object = {}, ...sources) => {
-  sources.forEach((source) => {
-    Object.keys(source).forEach((key) => {
+const mergeDeep = <T extends Record<string, unknown>>(
+  object: T = {} as T,
+  ...sources: Record<string, unknown>[]
+): T => {
+  for (const source of sources) {
+    for (const key of Object.keys(source)) {
       const v = source[key];
-      // console.log('k:', key, ', v:', source[key], typeof v, v instanceof Object);
       if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') {
-        object[key] = v;
+        (object as Record<string, unknown>)[key] = v;
       } else if (typeof v !== 'function' && !Array.isArray(v) && v instanceof Object) {
-        object[key] = object[key] || {};
-        mergeDeep(object[key], v);
+        (object as Record<string, unknown>)[key] = (object as Record<string, unknown>)[key] || {};
+        mergeDeep(
+          (object as Record<string, unknown>)[key] as Record<string, unknown>,
+          v as Record<string, unknown>
+        );
       } else {
-        object[key] = v;
+        (object as Record<string, unknown>)[key] = v;
       }
-    });
-  });
-  // console.log('::', object);
+    }
+  }
   return object;
 };
 
-function equals(obj1, obj2) {
+function equals(obj1: Record<string, unknown>, obj2: Record<string, unknown>): boolean {
   const keys = Object.keys(obj1);
   if (keys.length !== Object.keys(obj2).length) return false;
   for (let i = 0; i < keys.length; i += 1) {
@@ -33,12 +36,18 @@ function equals(obj1, obj2) {
     if (typeof v1 === 'string' || typeof v1 === 'number' || typeof v1 === 'boolean') {
       if (v1 !== v2) return false;
     } else if (Array.isArray(v1)) {
-      if (v1.length !== v2.length) return false;
+      if (!Array.isArray(v2) || v1.length !== v2.length) return false;
       for (let ai = 0; ai < v1.length; ai += 1) {
-        if (!equals(v1[ai], v2[ai])) return false;
+        if (
+          !equals(
+            v1[ai] as Record<string, unknown>,
+            (v2 as unknown[])[ai] as Record<string, unknown>
+          )
+        )
+          return false;
       }
     } else if (typeof v1 !== 'function' && !Array.isArray(v1) && v1 instanceof Object) {
-      if (!equals(v1, v2)) return false;
+      if (!equals(v1 as Record<string, unknown>, v2 as Record<string, unknown>)) return false;
     }
   }
   return true;
@@ -48,23 +57,36 @@ function equals(obj1, obj2) {
   objOrAry: obejct or Array
   cb: (value, index | key) => { return value }
 */
-const sum = (objOrAry, cb = (value) => value) => {
+const sum = <T extends Record<string, unknown> | unknown[]>(
+  objOrAry: T,
+  cb: (value: unknown, key: string) => number = (value) => value as number
+): [number, number] => {
   let total = 0;
   let size = 0;
-  Object.keys(objOrAry).forEach((key) => {
-    total += cb(objOrAry[key], key);
+  for (const key of Object.keys(objOrAry)) {
+    total += cb((objOrAry as Record<string, unknown>)[key], key);
     size += 1;
-  });
+  }
   return [total, size];
 };
 
-function deleteProperty(obj, property) {
+function deleteProperty<T extends Record<string, unknown>>(
+  obj: T,
+  property: string | number
+): unknown {
   const oldv = obj[`${property}`];
   delete obj[`${property}`];
   return oldv;
 }
 
-function rangeReduceIf(min, max, inits, initv, ifv, getv) {
+function rangeReduceIf(
+  min: number,
+  max: number,
+  inits: number,
+  initv: number,
+  ifv: number,
+  getv: (i: number) => number
+): [number, number, number] {
   let s = inits;
   let v = initv;
   let i = min;
@@ -76,7 +98,7 @@ function rangeReduceIf(min, max, inits, initv, ifv, getv) {
   return [i, s - v, v];
 }
 
-function rangeSum(min, max, getv) {
+function rangeSum(min: number, max: number, getv: (i: number) => number): number {
   let s = 0;
   for (let i = min; i < max; i += 1) {
     s += getv(i);
@@ -84,13 +106,13 @@ function rangeSum(min, max, getv) {
   return s;
 }
 
-function rangeEach(min, max, cb) {
+function rangeEach(min: number, max: number, cb: (i: number) => void): void {
   for (let i = min; i < max; i += 1) {
     cb(i);
   }
 }
 
-function arrayEquals(a1, a2) {
+function arrayEquals<T>(a1: T[], a2: T[]): boolean {
   if (a1.length === a2.length) {
     for (let i = 0; i < a1.length; i += 1) {
       if (a1[i] !== a2[i]) return false;
@@ -99,7 +121,7 @@ function arrayEquals(a1, a2) {
   return true;
 }
 
-function digits(a) {
+function digits(a: number | string): number {
   const v = `${a}`;
   let ret = 0;
   let flag = false;
@@ -110,7 +132,11 @@ function digits(a) {
   return ret;
 }
 
-export function numberCalc(type, a1, a2) {
+export function numberCalc(
+  type: '+' | '-' | '*' | '/',
+  a1: number | string,
+  a2: number | string
+): number | string {
   if (Number.isNaN(a1) || Number.isNaN(a2)) {
     return a1 + type + a2;
   }
@@ -135,7 +161,8 @@ export function numberCalc(type, a1, a2) {
 
 export default {
   cloneDeep,
-  merge: (...sources) => mergeDeep({}, ...sources),
+  merge: <T extends Record<string, unknown>>(...sources: Record<string, unknown>[]): T =>
+    mergeDeep({} as T, ...sources),
   equals,
   arrayEquals,
   sum,

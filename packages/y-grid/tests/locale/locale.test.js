@@ -84,7 +84,7 @@ describe('locale', () => {
 
       // Depends on existence of window global variable
       // Supply a fallback locale test 2 message dictionary (from locale test 1)
-      window.x_spreadsheet = { $messages: {
+      window.yGrid = { $messages: {
         'TEST_2': localeTest1Messages
       }};
 

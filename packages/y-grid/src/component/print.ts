@@ -134,7 +134,7 @@ export default class Print {
                     ...PAGER_ORIENTATIONS.map((_it, index) =>
                       h('option', '')
                         .attr('value', String(index))
-                        .child(`${(t('print.orientations') as string[])[index]}`)
+                        .child(`${(t('print.orientations') as unknown as string[])[index]}`)
                     )
                   )
                   .on('change', pagerOrientationChange.bind(this))
@@ -223,7 +223,7 @@ export default class Print {
     const iframe = h('iframe', '').hide();
     const { el } = iframe;
     window.document.body.appendChild(el);
-    const { contentWindow } = (el as HTMLIFrameElement);
+    const { contentWindow } = el as HTMLIFrameElement;
     if (!contentWindow) return;
     const idoc = contentWindow.document;
     const style = document.createElement('style');

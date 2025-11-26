@@ -64,7 +64,9 @@ export default class Calendar {
       h('table', 'calendar-body').children(
         h('thead', '').child(
           h('tr', '').children(
-            ...(t('calendar.weeks') as string[]).map((week) => h('th', 'cell').child(week))
+            ...(t('calendar.weeks') as unknown as string[]).map((week) =>
+              h('th', 'cell').child(week)
+            )
           )
         ),
         this.bodyEl
@@ -99,7 +101,7 @@ export default class Calendar {
   buildHeaderLeft(): void {
     const { value } = this;
     this.headerLeftEl.html(
-      `${(t('calendar.months') as string[])[value.getMonth()]} ${value.getFullYear()}`
+      `${(t('calendar.months') as unknown as string[])[value.getMonth()]} ${value.getFullYear()}`
     );
   }
 

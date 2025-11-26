@@ -1,4 +1,6 @@
-export default {
+import type { LocaleMessages } from './locale';
+
+const nl: LocaleMessages = {
   toolbar: {
     undo: 'Ongedaan maken',
     redo: 'Opnieuw uitvoeren',
@@ -55,3 +57,5 @@ export default {
     concat: 'Concat',
   },
 };
+
+export default nl;

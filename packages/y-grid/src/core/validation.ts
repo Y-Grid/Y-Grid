@@ -1,14 +1,34 @@
 import { CellRange } from './cell-range';
-import Validator from './validator';
+import Validator, { type ValidatorType, type ValidatorOperator } from './validator';
+
+export interface ValidationData {
+  refs: string[];
+  mode: string;
+  type: ValidatorType;
+  required: boolean;
+  operator?: ValidatorOperator;
+  value: string | string[] | [string, string];
+}
+
+export interface ValidatorConfig {
+  type: ValidatorType;
+  required: boolean;
+  value: string | string[] | [string, string];
+  operator?: ValidatorOperator;
+}
 
 class Validation {
-  constructor(mode, refs, validator) {
+  refs: string[];
+  mode: string; // cell
+  validator: Validator;
+
+  constructor(mode: string, refs: string[], validator: Validator) {
     this.refs = refs;
-    this.mode = mode; // cell
+    this.mode = mode;
     this.validator = validator;
   }
 
-  includes(ri, ci) {
+  includes(ri: number, ci: number): boolean {
     const { refs } = this;
     for (let i = 0; i < refs.length; i += 1) {
       const cr = CellRange.valueOf(refs[i]);
@@ -17,26 +37,28 @@ class Validation {
     return false;
   }
 
-  addRef(ref) {
+  addRef(ref: string): void {
     this.remove(CellRange.valueOf(ref));
     this.refs.push(ref);
   }
 
-  remove(cellRange) {
-    const nrefs = [];
-    this.refs.forEach((it) => {
+  remove(cellRange: CellRange): void {
+    const nrefs: string[] = [];
+    for (const it of this.refs) {
       const cr = CellRange.valueOf(it);
       if (cr.intersects(cellRange)) {
         const crs = cr.difference(cellRange);
-        crs.forEach((it1) => nrefs.push(it1.toString()));
+        for (const it1 of crs) {
+          nrefs.push(it1.toString());
+        }
       } else {
         nrefs.push(it);
       }
-    });
+    }
     this.refs = nrefs;
   }
 
-  getData() {
+  getData(): ValidationData {
     const { refs, mode, validator } = this;
     const { type, required, operator, value } = validator;
     return {
@@ -49,22 +71,21 @@ class Validation {
     };
   }
 
-  static valueOf({ refs, mode, type, required, operator, value }) {
+  static valueOf({ refs, mode, type, required, operator, value }: ValidationData): Validation {
     return new Validation(mode, refs, new Validator(type, required, value, operator));
   }
 }
-class Validations {
-  constructor() {
-    this._ = [];
-    // ri_ci: errMessage
-    this.errors = new Map();
-  }
 
-  getError(ri, ci) {
+class Validations {
+  _: Validation[] = [];
+  // ri_ci: errMessage
+  errors: Map<string, string> = new Map();
+
+  getError(ri: number, ci: number): string | undefined {
     return this.errors.get(`${ri}_${ci}`);
   }
 
-  validate(ri, ci, text) {
+  validate(ri: number, ci: number, text: string): boolean {
     const v = this.get(ri, ci);
     const key = `${ri}_${ci}`;
     const { errors } = this;
@@ -83,7 +104,7 @@ class Validations {
 
   // type: date|number|phone|email|list
   // validator: { required, value, operator }
-  add(mode, ref, { type, required, value, operator }) {
+  add(mode: string, ref: string, { type, required, value, operator }: ValidatorConfig): void {
     const validator = new Validator(type, required, value, operator);
     const v = this.getByValidator(validator);
     if (v !== null) {
@@ -93,7 +114,7 @@ class Validations {
     }
   }
 
-  getByValidator(validator) {
+  getByValidator(validator: Validator): Validation | null {
     for (let i = 0; i < this._.length; i += 1) {
       const v = this._[i];
       if (v.validator.equals(validator)) {
@@ -103,7 +124,7 @@ class Validations {
     return null;
   }
 
-  get(ri, ci) {
+  get(ri: number, ci: number): Validation | null {
     for (let i = 0; i < this._.length; i += 1) {
       const v = this._[i];
       if (v.includes(ri, ci)) return v;
@@ -111,24 +132,26 @@ class Validations {
     return null;
   }
 
-  remove(cellRange) {
+  remove(cellRange: CellRange): void {
     this.each((it) => {
       it.remove(cellRange);
     });
   }
 
-  each(cb) {
-    this._.forEach((it) => cb(it));
+  each(cb: (validation: Validation) => void): void {
+    for (const it of this._) {
+      cb(it);
+    }
   }
 
-  getData() {
+  getData(): ValidationData[] {
     return this._.filter((it) => it.refs.length > 0).map((it) => it.getData());
   }
 
-  setData(d) {
+  setData(d: ValidationData[]): void {
     this._ = d.map((it) => Validation.valueOf(it));
   }
 }
 
 export default {};
-export { Validations };
+export { Validations, Validation };
