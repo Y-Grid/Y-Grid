@@ -10,22 +10,6 @@
       margin: 0;
       padding: 0;
     }
-    .toolbar-file-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 32px;
-      height: 26px;
-      cursor: pointer;
-      border-radius: 2px;
-    }
-    .toolbar-file-btn:hover {
-      background-color: rgba(0, 0, 0, 0.08);
-    }
-    .toolbar-file-btn svg {
-      width: 18px;
-      height: 18px;
-    }
     #file-input {
       display: none;
     }
@@ -37,10 +21,12 @@
   <script type="module">
     import YGrid from '/packages/y-grid/dist/y-grid.js';
 
-    // File import icon (folder)
-    const fileIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
-    </svg>`;
+    // Create icon element matching the toolbar icon structure
+    function createIconElement(iconName) {
+      const iconImg = document.createElement('div');
+      iconImg.className = `x-spreadsheet-icon-img ${iconName}`;
+      return iconImg;
+    }
 
     const grid = new YGrid('#y-grid', {
       showToolbar: true,
@@ -50,7 +36,7 @@
         left: [
           {
             tip: 'Import CSV',
-            el: createFileButton(),
+            el: createIconElement('file-import'),
             onClick: () => {
               document.getElementById('file-input').click();
             }
@@ -58,13 +44,6 @@
         ]
       }
     });
-
-    function createFileButton() {
-      const btn = document.createElement('div');
-      btn.className = 'toolbar-file-btn';
-      btn.innerHTML = fileIcon;
-      return btn;
-    }
 
     // Handle file selection
     document.getElementById('file-input').addEventListener('change', async (e) => {
