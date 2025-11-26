@@ -9,7 +9,6 @@ import {
   DrawBox,
   npx,
   thinLineWidth,
-  type Border,
   type Borders,
   type Font,
   type TextAlign,
@@ -138,7 +137,7 @@ export function renderCell(
   if (rows.isHide(rindex) || cols.isHide(cindex)) return;
   let nrindex = rindex;
   if (sortedRowMap.has(rindex)) {
-    nrindex = sortedRowMap.get(rindex)!;
+    nrindex = sortedRowMap.get(rindex) ?? rindex;
   }
 
   const cell = data.getCell(nrindex, cindex);

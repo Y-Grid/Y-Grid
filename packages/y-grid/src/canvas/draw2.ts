@@ -4,7 +4,11 @@ class Draw {
 
   constructor(el: HTMLCanvasElement) {
     this.el = el;
-    this.ctx = el.getContext('2d')!;
+    const ctx = el.getContext('2d');
+    if (!ctx) {
+      throw new Error('Failed to get 2d canvas context');
+    }
+    this.ctx = ctx;
   }
 
   clear(): this {
