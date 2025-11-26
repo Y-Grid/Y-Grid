@@ -1,6 +1,8 @@
-# y-grid
+# Y-Grid
 
-> A high-performance web-based spreadsheet component. Forked from [x-spreadsheet](https://github.com/myliang/x-spreadsheet).
+A high-performance web-based spreadsheet component built with HTML5 Canvas.
+
+Forked from [x-spreadsheet](https://github.com/myliang/x-spreadsheet).
 
 ## Installation
 
@@ -11,20 +13,20 @@ npm install y-grid
 ## Usage
 
 ```html
-<div id="spreadsheet"></div>
+<div id="y-grid"></div>
 ```
 
 ```javascript
-import Spreadsheet from "y-grid";
+import YGrid from "y-grid";
 
-const s = new Spreadsheet("#spreadsheet")
+const grid = new YGrid("#y-grid")
   .loadData({})
   .change(data => {
-    // save data to db
+    // save data
   });
 
-// data validation
-s.validate()
+// validate data
+grid.validate()
 ```
 
 ### Options
@@ -70,25 +72,25 @@ s.validate()
 ### Events
 
 ```javascript
-const s = new Spreadsheet("#spreadsheet")
-s.on('cell-selected', (cell, ri, ci) => {});
-s.on('cells-selected', (cell, { sri, sci, eri, eci }) => {});
-s.on('cell-edited', (text, ri, ci) => {});
+const grid = new YGrid("#y-grid")
+grid.on('cell-selected', (cell, ri, ci) => {});
+grid.on('cells-selected', (cell, { sri, sci, eri, eci }) => {});
+grid.on('cell-edited', (text, ri, ci) => {});
 ```
 
-### Cell operations
+### Cell Operations
 
 ```javascript
-const s = new Spreadsheet("#spreadsheet")
+const grid = new YGrid("#y-grid")
 
 // Update cell text: cellText(ri, ci, text, sheetIndex = 0)
-s.cellText(5, 5, 'xxxx').cellText(6, 5, 'yyy').reRender();
+grid.cellText(5, 5, 'hello').cellText(6, 5, 'world').reRender();
 
 // Get cell: cell(ri, ci, sheetIndex = 0)
-s.cell(ri, ci);
+grid.cell(ri, ci);
 
 // Get cell style: cellStyle(ri, ci, sheetIndex = 0)
-s.cellStyle(ri, ci);
+grid.cellStyle(ri, ci);
 ```
 
 ## Features
@@ -118,8 +120,8 @@ s.cellStyle(ri, ci);
 ## Development
 
 ```shell
-git clone https://github.com/nicksinclair/y-grid.git
-cd y-grid
+git clone https://github.com/Y-Grid/Y-Grid.git
+cd Y-Grid
 npm install
 npm run dev
 ```
