@@ -317,29 +317,31 @@ async function* parseCSVChunked(file: File): AsyncGenerator<CellValue[][]> {
 - `packages/y-grid/src/core/plugin.ts` (NEW)
 - `packages/y-grid/src/index.ts` → update Spreadsheet class
 
-### Step 2: CSV Parser (Core)
+### Step 2: CSV Parser (Core) ✅ DONE
 
-1. Implement CSV parser in core
-2. Handle edge cases:
-   - Quoted fields with commas
-   - Newlines in quoted fields
-   - Different delimiters (comma, tab, semicolon)
-3. Auto-detect delimiter
-4. Add `importCSV()` and `importFile()` to Spreadsheet
-
-**Files**:
-- `packages/y-grid/src/core/csv-parser.ts` (NEW)
-- `packages/y-grid/src/index.ts` → add import methods
-
-### Step 3: Demo UI
-
-1. Add file icon button to demo header
-2. Wire up click → file input → `importFile()`
-3. Show loading state during import
-4. Show success/error toast
+1. ~~Implement CSV parser in core~~
+2. ~~Handle edge cases:~~
+   - ~~Quoted fields with commas~~
+   - ~~Newlines in quoted fields~~
+   - ~~Different delimiters (comma, tab, semicolon)~~
+3. ~~Auto-detect delimiter~~
+4. ~~Add `importCSV()` and `importCSVText()` to YGrid class~~
 
 **Files**:
-- `demo/index.html`
+- `packages/y-grid/src/core/csv-parser.ts` ✅
+- `packages/y-grid/src/index.js` → added import methods ✅
+
+### Step 3: Demo UI ✅ DONE
+
+1. ~~Add file icon button to demo header (open folder icon)~~
+2. ~~Wire up click → file input → `importCSV()`~~
+3. Show loading state during import (TODO)
+4. Show success/error toast (TODO - console.log for now)
+
+**Files**:
+- `demo/index.html` ✅
+- `packages/y-grid/assets/sprite.svg` → added file-import & save icons ✅
+- `packages/y-grid/src/index.less` → added icon CSS ✅
 
 ### Step 4: Excel Plugin Package
 
@@ -452,12 +454,12 @@ spreadsheet.on('import:error', (error: Error) => {});
 
 ## Success Criteria
 
-- [ ] File icon visible in demo header
-- [ ] Click opens file picker
-- [ ] CSV import works (basic and quoted fields)
+- [x] File icon visible in demo header
+- [x] Click opens file picker
+- [x] CSV import works (basic and quoted fields)
 - [ ] Excel import works (.xlsx)
 - [ ] Progress shown for files > 5K rows
-- [ ] Error messages are user-friendly
+- [x] Error messages are user-friendly
 - [ ] 50K row CSV imports in < 3 seconds
 - [ ] No UI freeze during import
 

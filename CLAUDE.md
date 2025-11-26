@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 y-grid is a high-performance web-based grid library that renders using HTML5 Canvas. Forked from x-spreadsheet.
 
 This is a **monorepo** using npm workspaces:
-- `packages/y-grid/` - Core grid package
+- `packages/y-grid/` - Core grid package (includes CSV import)
 - `packages/y-grid-excel/` - Excel import plugin (planned)
 
 ## Development Commands
@@ -47,14 +47,17 @@ y-grid/
 ├── packages/
 │   └── y-grid/                # Core package
 │       ├── src/
-│       │   ├── index.js       # Main entry point (Spreadsheet class)
+│       │   ├── index.js       # Main entry point (YGrid class)
 │       │   ├── core/          # Data layer
+│       │   │   ├── csv-parser.ts  # RFC 4180 CSV parser
+│       │   │   └── ...
 │       │   ├── component/     # UI components
 │       │   ├── canvas/        # Canvas drawing utilities
 │       │   └── locale/        # i18n
 │       ├── tests/
 │       ├── assets/
-│       ├── vite.config.js
+│       │   └── sprite.svg     # Toolbar icons
+│       ├── vite.config.ts
 │       ├── tsconfig.json
 │       └── biome.json
 ├── demo/                      # Demo application (shared)
@@ -66,7 +69,7 @@ y-grid/
 
 ### Core Data Flow
 
-1. **Spreadsheet** (`src/index.js`) - Main entry point, manages multiple sheets via `DataProxy`
+1. **YGrid** (`src/index.js`) - Main entry point, manages multiple sheets via `DataProxy`
 2. **DataProxy** (`src/core/data-proxy.js`) - Central data store for each sheet:
    - Cell data, styles, merges, validations
    - Selection state (`Selector`)
@@ -107,6 +110,27 @@ const div = h('div', 'my-class').children(child1, child2);
 - Mixed JS/TS codebase (`allowJs: true`)
 - Incremental migration in progress
 
+## Features
+
+### CSV Import (Built-in)
+
+```javascript
+// Import from file
+await grid.importCSV(file);
+
+// Import from text
+grid.importCSVText('name,age\nJohn,30\nJane,25');
+```
+
+The CSV parser is RFC 4180 compliant with auto-delimiter detection.
+
+### Toolbar Icons
+
+Custom icons can be added to the toolbar via `extendToolbar`. Available built-in icons:
+- `file-import` - Open folder icon
+- `save` - Floppy disk icon
+- Plus all standard icons (undo, redo, bold, italic, etc.)
+
 ## Roadmap
 
 See `docs/refactoring_plan.md` for the full roadmap. Key priorities:
@@ -114,3 +138,9 @@ See `docs/refactoring_plan.md` for the full roadmap. Key priorities:
 1. **Performance** - Virtual scrolling, dirty region tracking, layered canvas
 2. **TypeScript** - Incremental migration
 3. **Plugin system** - For optional features like Excel import
+
+## Completed
+
+- [x] Monorepo setup (npm workspaces)
+- [x] CSV import (built-in, RFC 4180 compliant)
+- [x] Demo with file import button
