@@ -22,34 +22,14 @@ The current codebase was designed as a "looks like Excel" demo, not a performanc
 
 ---
 
-## Phase 1: Foundation (Current)
+## Phase 1: Foundation (COMPLETE)
 
 **Goal**: Clean codebase, monorepo structure, TypeScript setup, dev workflow
 
-### 1.1 Codebase Conventions
-- [x] Rename files to kebab-case
-- [x] Rename `test/` to `tests/`
-- [x] Update imports
-
-### 1.2 Monorepo Setup
-- [x] Create `packages/` directory
-- [x] Move `src/` to `packages/y-grid/src/`
-- [x] Set up npm workspaces
-- [x] Create `packages/y-grid/package.json`
-- [x] Update root `package.json` as workspace root
-- [x] Update build scripts for multi-package
-- [x] Keep `demo/` at root level (shared across packages)
-- [x] Move `tests/` to `packages/y-grid/tests/`
-
-### 1.3 TypeScript Setup
-- [x] Install TypeScript
-- [x] Create `tsconfig.json` with `allowJs: true`
-- [ ] Add `npm run typecheck` script
-- [ ] Configure Vite for mixed JS/TS
-
-### 1.4 Dev Workflow
-- [ ] Fix `npm run dev` to work with demo
-- [ ] Hot reload during development
+Completed:
+- Kebab-case file naming, monorepo with npm workspaces
+- TypeScript configured with Vite, `npm run typecheck` available
+- Dev server at http://localhost:8080 with hot reload
 
 ---
 
@@ -313,29 +293,9 @@ Tasks:
 
 ---
 
-## Phase 7: TypeScript Migration (ONGOING)
+## Phase 7: TypeScript Migration (COMPLETE)
 
-Migrate files to TypeScript incrementally, prioritizing:
-
-1. **Core data structures** (enables type-safe refactoring)
-   - [ ] `src/core/cell-range.ts`
-   - [x] `src/core/alphabet.ts`
-   - [x] `src/core/clipboard.ts`
-   - [ ] `src/core/row.ts`
-   - [ ] `src/core/col.ts`
-
-2. **New code** (all new modules in TypeScript)
-   - [ ] `src/core/viewport.ts`
-   - [ ] `src/core/dirty-tracker.ts`
-   - [ ] `src/core/render-scheduler.ts`
-
-3. **Rendering** (after architecture stabilizes)
-   - [ ] `src/canvas/draw.ts`
-   - [ ] `src/component/table.ts`
-
-4. **Components** (last, most churn expected)
-   - [ ] `src/component/sheet.ts`
-   - [ ] Others as needed
+All source files have been converted to TypeScript.
 
 ---
 
@@ -373,10 +333,10 @@ Tasks:
 | 3. Data Layer | **CRITICAL** | Very High | High |
 | 4. Scroll Performance | HIGH | High | Medium |
 | 5. Caching | MEDIUM | Medium | Low |
-| 1. Foundation | MEDIUM | Low | Low |
-| 7. TypeScript | ONGOING | Medium | Ongoing |
 | 6. Formula Engine | LOW | Low | Medium |
 | 8. Renderer Abstraction | FUTURE | Medium | High |
+| 1. Foundation | ~~COMPLETE~~ | - | - |
+| 7. TypeScript | ~~COMPLETE~~ | - | - |
 
 ---
 

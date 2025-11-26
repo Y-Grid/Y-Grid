@@ -49,7 +49,7 @@ export default class Calendar {
     this.headerLeftEl = h('div', 'calendar-header-left');
     this.bodyEl = h('tbody', '');
     this.buildAll();
-    this.el = h('div', 'x-spreadsheet-calendar').children(
+    this.el = h('div', 'y-grid-calendar').children(
       h('div', 'calendar-header').children(
         this.headerLeftEl,
         h('div', 'calendar-header-right').children(

@@ -30,7 +30,7 @@ npm run format       # Format code with Biome
 ```bash
 npm run test -- --filter="formula"
 # or directly in package
-cd packages/y-grid && npx vitest run tests/core/formula.test.js
+cd packages/y-grid && npx vitest run tests/core/formula.test.ts
 ```
 
 ### Working with specific package
@@ -47,11 +47,9 @@ y-grid/
 ├── packages/
 │   └── y-grid/                # Core package
 │       ├── src/
-│       │   ├── index.js       # Main entry point (YGrid class)
-│       │   ├── core/          # Data layer
-│       │   │   ├── csv-parser.ts  # RFC 4180 CSV parser
-│       │   │   └── ...
-│       │   ├── component/     # UI components
+│       │   ├── index.ts       # Main entry point (YGrid class)
+│       │   ├── core/          # Data layer (TypeScript)
+│       │   ├── component/     # UI components (TypeScript)
 │       │   ├── canvas/        # Canvas drawing utilities
 │       │   └── locale/        # i18n
 │       ├── tests/
@@ -69,32 +67,32 @@ y-grid/
 
 ### Core Data Flow
 
-1. **YGrid** (`src/index.js`) - Main entry point, manages multiple sheets via `DataProxy`
-2. **DataProxy** (`src/core/data-proxy.js`) - Central data store for each sheet:
+1. **YGrid** (`src/index.ts`) - Main entry point, manages multiple sheets via `DataProxy`
+2. **DataProxy** (`src/core/data-proxy.ts`) - Central data store for each sheet:
    - Cell data, styles, merges, validations
    - Selection state (`Selector`)
    - Scroll position (`Scroll`)
    - Undo/redo history (`History`)
-3. **Sheet** (`src/component/sheet.js`) - UI controller:
+3. **Sheet** (`src/component/sheet.ts`) - UI controller:
    - Canvas rendering via `Table`
    - User input handling
    - Toolbar, context menus, scrollbars
 
 ### Rendering
 
-All content is drawn on a single `<canvas>` element by `Table` (`src/component/table.js`) using drawing utilities from `src/canvas/draw.js`.
+All content is drawn on a single `<canvas>` element by `Table` (`src/component/table.ts`) using drawing utilities from `src/canvas/draw.ts`.
 
 ### Key Modules
 
-- `src/core/cell-range.js` - CellRange class for range operations
-- `src/core/alphabet.js` - Column letter ↔ index conversion (A=0, B=1)
-- `src/core/row.js` / `src/core/col.js` - Row/column dimensions
-- `src/core/formula.js` - Formula functions (SUM, AVERAGE, MAX, MIN, IF, etc.)
+- `src/core/cell-range.ts` - CellRange class for range operations
+- `src/core/alphabet.ts` - Column letter ↔ index conversion (A=0, B=1)
+- `src/core/row.ts` / `src/core/col.ts` - Row/column dimensions
+- `src/core/formula.ts` - Formula functions (SUM, AVERAGE, MAX, MIN, IF, etc.)
 
 ### Component Pattern
 
 UI components use a lightweight DOM helper:
-```javascript
+```typescript
 import { h } from './element';
 const div = h('div', 'my-class').children(child1, child2);
 ```
@@ -107,14 +105,13 @@ const div = h('div', 'my-class').children(child1, child2);
 - 2-space indentation
 
 **TypeScript** (`packages/y-grid/tsconfig.json`):
-- Mixed JS/TS codebase (`allowJs: true`)
-- Incremental migration in progress
+- Full TypeScript codebase (migration complete)
 
 ## Features
 
 ### CSV Import (Built-in)
 
-```javascript
+```typescript
 // Import from file
 await grid.importCSV(file);
 
@@ -136,11 +133,4 @@ Custom icons can be added to the toolbar via `extendToolbar`. Available built-in
 See `docs/refactoring_plan.md` for the full roadmap. Key priorities:
 
 1. **Performance** - Virtual scrolling, dirty region tracking, layered canvas
-2. **TypeScript** - Incremental migration
-3. **Plugin system** - For optional features like Excel import
-
-## Completed
-
-- [x] Monorepo setup (npm workspaces)
-- [x] CSV import (built-in, RFC 4180 compliant)
-- [x] Demo with file import button
+2. **Plugin system** - For optional features like Excel import
