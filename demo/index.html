@@ -13,11 +13,50 @@
     #file-input {
       display: none;
     }
+    #perf-overlay {
+      position: fixed;
+      top: 50px;
+      right: 10px;
+      background: rgba(0,0,0,0.8);
+      color: #0f0;
+      font-family: monospace;
+      font-size: 12px;
+      padding: 10px;
+      border-radius: 5px;
+      z-index: 10000;
+      display: none;
+    }
+    #perf-overlay.visible {
+      display: block;
+    }
+    #perf-overlay div {
+      margin: 3px 0;
+    }
+    #perf-overlay .label {
+      color: #888;
+    }
+    #perf-overlay .value {
+      color: #0f0;
+    }
+    #perf-overlay .warn {
+      color: #ff0;
+    }
+    #perf-overlay .bad {
+      color: #f00;
+    }
   </style>
 </head>
 <body>
   <input type="file" id="file-input" accept=".csv">
   <div id="y-grid"></div>
+  <button id="perf-toggle" style="position:fixed;top:50px;right:10px;z-index:10001;padding:5px 10px;font-size:11px;cursor:pointer;">Perf</button>
+  <div id="perf-overlay">
+    <div><span class="label">FPS:</span> <span id="perf-fps" class="value">--</span></div>
+    <div><span class="label">Rows:</span> <span id="perf-rows" class="value">--</span></div>
+    <div><span class="label">Memory:</span> <span id="perf-memory" class="value">--</span></div>
+    <div><span class="label">Render:</span> <span id="perf-render" class="value">--</span></div>
+    <div style="margin-top:8px;font-size:10px;color:#666">Press 'P' or click button</div>
+  </div>
   <script type="module">
     import YGrid from '/packages/y-grid/dist/y-grid.js';
 
@@ -45,14 +84,21 @@
       }
     });
 
+    // Expose grid globally for debugging
+    window.grid = grid;
+    window.YGrid = YGrid;
+
     // Handle file selection
     document.getElementById('file-input').addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (!file) return;
 
       try {
+        const startTime = performance.now();
         const { rowCount, colCount } = await grid.importCSV(file);
-        console.log(`Imported ${rowCount} rows, ${colCount} columns from ${file.name}`);
+        const loadTime = performance.now() - startTime;
+        console.log(`Imported ${rowCount} rows, ${colCount} columns from ${file.name} in ${loadTime.toFixed(0)}ms`);
+        updatePerfDisplay();
       } catch (err) {
         console.error('Failed to import CSV:', err);
         alert('Failed to import CSV file');
@@ -61,6 +107,178 @@
       // Reset input so same file can be selected again
       e.target.value = '';
     });
+
+    // Performance monitoring
+    const perfOverlay = document.getElementById('perf-overlay');
+    const perfFps = document.getElementById('perf-fps');
+    const perfRows = document.getElementById('perf-rows');
+    const perfMemory = document.getElementById('perf-memory');
+    const perfRender = document.getElementById('perf-render');
+
+    let frameCount = 0;
+    let lastFpsTime = performance.now();
+    let fps = 0;
+    let perfEnabled = false;
+
+    function updateFps() {
+      frameCount++;
+      const now = performance.now();
+      if (now - lastFpsTime >= 1000) {
+        fps = frameCount;
+        frameCount = 0;
+        lastFpsTime = now;
+        if (perfEnabled) {
+          updatePerfDisplay();
+        }
+      }
+      requestAnimationFrame(updateFps);
+    }
+    requestAnimationFrame(updateFps);
+
+    function updatePerfDisplay() {
+      // FPS
+      perfFps.textContent = fps;
+      perfFps.className = fps >= 55 ? 'value' : fps >= 30 ? 'warn' : 'bad';
+
+      // Row count
+      const data = grid.getData();
+      const rowCount = data[0]?.rows?.len || 0;
+      perfRows.textContent = rowCount.toLocaleString();
+
+      // Memory (Chrome only)
+      if (performance.memory) {
+        const mb = (performance.memory.usedJSHeapSize / 1024 / 1024).toFixed(1);
+        perfMemory.textContent = mb + ' MB';
+      } else {
+        perfMemory.textContent = 'N/A';
+      }
+
+      // Render time
+      const renderStart = performance.now();
+      grid.reRender();
+      const renderTime = performance.now() - renderStart;
+      perfRender.textContent = renderTime.toFixed(1) + ' ms';
+      perfRender.className = renderTime < 16 ? 'value' : renderTime < 33 ? 'warn' : 'bad';
+    }
+
+    // Toggle perf overlay
+    function togglePerf() {
+      perfEnabled = !perfEnabled;
+      perfOverlay.classList.toggle('visible', perfEnabled);
+      if (perfEnabled) {
+        updatePerfDisplay();
+      }
+    }
+
+    // Toggle with 'P' key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'p' || e.key === 'P') {
+        togglePerf();
+      }
+    });
+
+    // Toggle with button click
+    document.getElementById('perf-toggle').addEventListener('click', togglePerf);
+
+    // Benchmark function
+    window.runBenchmark = async function(rowCount = 10000) {
+      console.log(`Running benchmark with ${rowCount.toLocaleString()} rows...`);
+
+      // Generate test data
+      const rows = {};
+      for (let r = 0; r < rowCount; r++) {
+        const cells = {};
+        for (let c = 0; c < 26; c++) {
+          cells[c] = { text: `R${r}C${c}` };
+        }
+        rows[r] = { cells };
+      }
+      rows.len = rowCount;
+
+      // Measure load time
+      const loadStart = performance.now();
+      grid.loadData([{ name: 'Benchmark', rows, cols: { len: 26 } }]);
+      const loadTime = performance.now() - loadStart;
+
+      // Measure render time
+      const renderStart = performance.now();
+      grid.reRender();
+      const renderTime = performance.now() - renderStart;
+
+      // Memory
+      let memoryMb = 'N/A';
+      if (performance.memory) {
+        memoryMb = (performance.memory.usedJSHeapSize / 1024 / 1024).toFixed(1) + ' MB';
+      }
+
+      // Measure scroll FPS
+      console.log('Measuring scroll FPS for 3 seconds...');
+      const scrollFps = await measureScrollFps();
+
+      const results = {
+        rowCount: rowCount.toLocaleString(),
+        loadTime: loadTime.toFixed(0) + ' ms',
+        renderTime: renderTime.toFixed(1) + ' ms',
+        memory: memoryMb,
+        scrollFps: scrollFps.toFixed(1) + ' FPS'
+      };
+
+      console.table(results);
+
+      // Thresholds
+      const passed = [];
+      const failed = [];
+
+      if (rowCount <= 10000) {
+        loadTime < 200 ? passed.push('Load time OK') : failed.push('Load time too slow');
+        renderTime < 16 ? passed.push('Render time OK') : failed.push('Render time too slow');
+        scrollFps >= 55 ? passed.push('Scroll FPS OK') : failed.push('Scroll FPS too low');
+      } else {
+        loadTime < 1000 ? passed.push('Load time OK') : failed.push('Load time too slow');
+        renderTime < 50 ? passed.push('Render time OK') : failed.push('Render time too slow');
+        scrollFps >= 30 ? passed.push('Scroll FPS OK') : failed.push('Scroll FPS too low');
+      }
+
+      console.log('Passed:', passed.join(', '));
+      if (failed.length) console.warn('Failed:', failed.join(', '));
+
+      return results;
+    };
+
+    async function measureScrollFps() {
+      return new Promise((resolve) => {
+        let frames = 0;
+        let startTime = performance.now();
+        const duration = 3000;
+
+        const canvas = document.querySelector('.y-grid-table');
+
+        function scroll() {
+          frames++;
+          // Simulate scroll
+          const event = new WheelEvent('wheel', { deltaY: 30, bubbles: true });
+          canvas.dispatchEvent(event);
+
+          if (performance.now() - startTime < duration) {
+            requestAnimationFrame(scroll);
+          } else {
+            const fps = frames / (duration / 1000);
+            resolve(fps);
+          }
+        }
+
+        requestAnimationFrame(scroll);
+      });
+    }
+
+    console.log(`
+Y-Grid Demo
+===========
+- Press 'P' to toggle performance overlay
+- Run window.runBenchmark(10000) for 10K row test
+- Run window.runBenchmark(100000) for 100K row test
+- Use toolbar icon to import CSV files
+    `);
   </script>
 </body>
 </html>
