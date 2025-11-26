@@ -24,20 +24,30 @@ The current codebase was designed as a "looks like Excel" demo, not a performanc
 
 ## Phase 1: Foundation (Current)
 
-**Goal**: Clean codebase, TypeScript setup, dev workflow
+**Goal**: Clean codebase, monorepo structure, TypeScript setup, dev workflow
 
 ### 1.1 Codebase Conventions
 - [x] Rename files to kebab-case
 - [x] Rename `test/` to `tests/`
 - [x] Update imports
 
-### 1.2 TypeScript Setup
+### 1.2 Monorepo Setup
+- [ ] Create `packages/` directory
+- [ ] Move `src/` to `packages/y-grid/src/`
+- [ ] Set up pnpm workspaces
+- [ ] Create `packages/y-grid/package.json`
+- [ ] Update root `package.json` as workspace root
+- [ ] Update build scripts for multi-package
+- [ ] Move `demo/` to root level (shared)
+- [ ] Move `tests/` to `packages/y-grid/tests/`
+
+### 1.3 TypeScript Setup
 - [x] Install TypeScript
 - [x] Create `tsconfig.json` with `allowJs: true`
 - [ ] Add `npm run typecheck` script
 - [ ] Configure Vite for mixed JS/TS
 
-### 1.3 Dev Workflow
+### 1.4 Dev Workflow
 - [ ] Fix `npm run dev` to work with demo
 - [ ] Hot reload during development
 
